@@ -1,0 +1,4 @@
+interface:
+  display_name: "Parallel Subagents"
+  short_description: "Cost-aware Codex split gate"
+  default_prompt: "Use $parallel-subagent-planner as a cost-aware split check: consider Codex subagents when one strong split signal appears, then launch only bounded lanes. Default to non-inheriting child context; assign agent type, model, and reasoning when useful; inherit full history only when the lane cannot be safely described by a compact brief."

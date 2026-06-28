@@ -1,6 +1,6 @@
 # Maintenance
 
-Use this reference when updating the skill, prompt assets, fixtures, or
+Use this reference when updating the skill, prompt assets, fixtures, docs, or
 benchmark notes.
 
 ## Source Of Truth
@@ -25,19 +25,23 @@ committed.
 
 1. Keep `SKILL.md` concise. Move detailed criteria, examples, and maintenance
    notes into `references/`, `docs/`, or `examples/`.
-2. Update `agents/openai.yaml` if the default behavior or user-facing summary
+2. Keep `opsx-parallel.md` as a thin command wrapper. Do not duplicate the full
+   launch protocol there; `SKILL.md` is the source of truth.
+3. Update `agents/openai.yaml` if the default behavior or user-facing summary
    changes materially.
-3. Update `README.md` and `README.zh-CN.md` when repository layout or user-facing
+4. Update `README.md` and `README.zh-CN.md` when repository layout or user-facing
    scope changes.
-4. Add or adjust examples in `examples/fixtures.md` when the intended launch
+5. Add or adjust examples in `examples/fixtures.md` when the intended launch
    behavior changes.
-5. Run `git diff --check`.
-6. Sync the local installed skill directory.
-7. Commit and push the canonical repository.
+6. Update `docs/request-flow.md` first when request flow changes, then mirror
+   the same semantic change into `docs/request-flow.zh-CN.md`.
+7. Run `git diff --check`.
+8. Sync the local installed skill directory.
+9. Commit and push the canonical repository.
 
 ## Benchmark Notes
 
-Benchmark snapshots in the README are historical local runs. When adding a new
+Benchmark snapshots live in `references/benchmarks.md`. When adding a new
 snapshot, include:
 
 - prompt group
@@ -64,5 +68,5 @@ rg --files C:\Users\ManHua\.codex\skills\parallel-subagent-planner
 ```
 
 The installed folder may omit repository-only docs such as README files, but it
-must include the same `SKILL.md`, `agents/`, `references/`, and prompt assets
-that Codex needs at runtime.
+must include the same `SKILL.md`, `agents/`, `references/`, `docs/`, `examples/`,
+and prompt assets that Codex may need at runtime or during maintenance.

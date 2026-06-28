@@ -59,23 +59,7 @@ Each lane carries explicit `read_scope`, `write_scope`, `can_launch`, and `held_
 
 ## Benchmark Snapshots
 
-Historical local runs:
-
-Snapshot 1:
-
-| Group | Prompt | Spawn | Fork errors | Total tokens | Wall-clock | Result |
-|---|---|---:|---:|---:|---:|---|
-| A | no skill, no subagent prompt | 0 | 0 | 416,979 | 139.6s | pass |
-| B | no skill, explicitly asks for subagents | 2 | 2 | 1,309,759 | 253.1s | pass |
-| C | Parallel Subagents enabled | 2 | 2 | 603,194 | 159.0s | pass |
-
-Snapshot 2:
-
-| Group | Meaning | Spawn | Fork errors | Total tokens | Estimated cost | Wall-clock | Result |
-|---|---|---:|---:|---:|---:|---:|---|
-| A | no skill, no subagent | 0 | 0 | 394,547 | `$0.657297` | 238.0s | pass |
-| B | no-skill manual parallel | 3 | 0 | 728,096 | `$1.025731` | 285.3s | pass |
-| C | skill parallel | 3 | 0 | 1,064,149 | `$0.838304` | 287.1s | pass |
+Historical local runs live in `references/benchmarks.md`.
 
 ## Repository Layout
 
@@ -90,6 +74,7 @@ parallel-subagent-planner/
 ├─ examples/
 │  └─ fixtures.md
 ├─ references/
+│  ├─ benchmarks.md
 │  ├─ long-term-agents.md
 │  ├─ maintenance.md
 │  ├─ planner-details.md
@@ -104,6 +89,7 @@ File roles:
 - `docs/request-flow.md`: where the skill fits in a Codex request and what happens after lanes return
 - `docs/request-flow.zh-CN.md`: Chinese request-flow explanation
 - `examples/fixtures.md`: expected behavior examples for launch, hold, and promotion decisions
+- `references/benchmarks.md`: historical benchmark snapshots and recording rules
 - `references/long-term-agents.md`: detailed criteria for reusable agent promotion
 - `references/maintenance.md`: source-of-truth, drift check, and benchmark update guidance
 - `references/prompt-templates.md`: reusable lane prompt templates

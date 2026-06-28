@@ -85,8 +85,13 @@ parallel-subagent-planner/
 ├─ agents/
 │  └─ openai.yaml
 ├─ docs/
-│  └─ request-flow.md
+│  ├─ request-flow.md
+│  └─ request-flow.zh-CN.md
+├─ examples/
+│  └─ fixtures.md
 ├─ references/
+│  ├─ long-term-agents.md
+│  ├─ maintenance.md
 │  ├─ planner-details.md
 │  └─ prompt-templates.md
 └─ opsx-parallel.md
@@ -97,6 +102,10 @@ parallel-subagent-planner/
 - `SKILL.md`：核心规划逻辑、lane 拆分规则、模型与 reasoning 建议
 - `agents/openai.yaml`：agent 元数据和默认入口提示
 - `docs/request-flow.md`：说明该 skill 在 Codex 请求链路中的位置，以及 lane 返回后的处理流程
+- `docs/request-flow.zh-CN.md`：中文请求链路说明
+- `examples/fixtures.md`：固定 launch、hold、promotion 决策的预期行为样例
+- `references/long-term-agents.md`：可复用 agent promotion 的详细判断标准
+- `references/maintenance.md`：source of truth、漂移检查和 benchmark 更新说明
 - `references/prompt-templates.md`：可复用的 lane prompt 模板
 - `references/planner-details.md`：详细 lane 规划规则，只在拆分不清时加载
 - `opsx-parallel.md`：配套命令入口，用于轻量级并行规划和 prompt 生成
@@ -120,5 +129,7 @@ parallel-subagent-planner/
 ## 维护工作流
 
 1. 更新 skill 源文件和配套 prompt 资产。
-2. 检查 diff。
-3. 提交并推送仓库变更。
+2. 行为变化时同步更新 fixtures 或 references。
+3. 从该仓库同步本地已安装 skill。
+4. 检查 diff 并运行 `git diff --check`。
+5. 提交并推送仓库变更。

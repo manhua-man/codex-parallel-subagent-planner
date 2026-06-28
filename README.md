@@ -85,8 +85,13 @@ parallel-subagent-planner/
 ├─ agents/
 │  └─ openai.yaml
 ├─ docs/
-│  └─ request-flow.md
+│  ├─ request-flow.md
+│  └─ request-flow.zh-CN.md
+├─ examples/
+│  └─ fixtures.md
 ├─ references/
+│  ├─ long-term-agents.md
+│  ├─ maintenance.md
 │  ├─ planner-details.md
 │  └─ prompt-templates.md
 └─ opsx-parallel.md
@@ -97,6 +102,10 @@ File roles:
 - `SKILL.md`: core planning logic, lane heuristics, model/reasoning guidance
 - `agents/openai.yaml`: agent metadata and default prompt entry
 - `docs/request-flow.md`: where the skill fits in a Codex request and what happens after lanes return
+- `docs/request-flow.zh-CN.md`: Chinese request-flow explanation
+- `examples/fixtures.md`: expected behavior examples for launch, hold, and promotion decisions
+- `references/long-term-agents.md`: detailed criteria for reusable agent promotion
+- `references/maintenance.md`: source-of-truth, drift check, and benchmark update guidance
 - `references/prompt-templates.md`: reusable lane prompt templates
 - `references/planner-details.md`: detailed lane planning rules loaded only when the split is unclear
 - `opsx-parallel.md`: companion command entry for lightweight planning and prompt generation
@@ -120,5 +129,7 @@ File roles:
 ## Maintenance Workflow
 
 1. Update the skill sources and companion prompt assets.
-2. Review the diff.
-3. Commit and push the repository changes.
+2. Update fixtures or references when behavior changes.
+3. Sync the installed local skill from this repository.
+4. Review the diff and run `git diff --check`.
+5. Commit and push the repository changes.

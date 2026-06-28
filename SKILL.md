@@ -24,7 +24,9 @@ objective checks. Do not promote temporary task workers, broad coordinators, or
 roles that depend on one-off session context.
 
 Do not create or write `.codex/agents/` or `agents/` files until the user
-explicitly approves that specific promotion.
+explicitly approves that specific promotion. If a reusable candidate is unclear
+or the user asks for criteria/spec details, read
+[references/long-term-agents.md](references/long-term-agents.md).
 
 ## Fast Gate
 

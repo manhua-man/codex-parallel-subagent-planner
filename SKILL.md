@@ -7,6 +7,25 @@ description: Lightweight default parallelism gate for Codex coding, debugging, r
 
 Default behavior: cost-aware split check. Consider subagents when there is one strong split signal; launch only lanes that are bounded enough to execute safely. Do not load detailed references unless the split is unclear.
 
+## Mandatory Long-Term Agent Check
+
+After every parallel run, check whether any completed subagent role is worth
+turning into a long-term agent. If a reusable candidate exists, proactively ask
+the user whether to promote it. Do not wait for the user to ask first.
+
+Promotion is advisory until the user explicitly approves file creation. When
+asking, report only:
+- Whether the role is worth promoting
+- Why it is worth promoting
+- Where the agent spec should be stored
+
+Recommend promotion only for recurring, bounded steward/verifier roles with
+objective checks. Do not promote temporary task workers, broad coordinators, or
+roles that depend on one-off session context.
+
+Do not create or write `.codex/agents/` or `agents/` files until the user
+explicitly approves that specific promotion.
+
 ## Fast Gate
 
 Consider subagents when any one is true:

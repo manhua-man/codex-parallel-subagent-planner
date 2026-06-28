@@ -15,6 +15,8 @@
 
 这个仓库保存的是该 skill 及其配套 prompt 资产的维护版本。
 
+实际执行仍依赖 Codex 宿主会话、工具和子智能体启动能力。本仓库提供规划指令和 prompt 资产，不提供本地 runner、Python 包、CLI 或 session manager。
+
 当前适用范围：
 
 - 面向 Codex 及 Codex 子智能体工作流
@@ -82,7 +84,10 @@ parallel-subagent-planner/
 ├─ SKILL.md
 ├─ agents/
 │  └─ openai.yaml
+├─ docs/
+│  └─ request-flow.md
 ├─ references/
+│  ├─ planner-details.md
 │  └─ prompt-templates.md
 └─ opsx-parallel.md
 ```
@@ -91,6 +96,7 @@ parallel-subagent-planner/
 
 - `SKILL.md`：核心规划逻辑、lane 拆分规则、模型与 reasoning 建议
 - `agents/openai.yaml`：agent 元数据和默认入口提示
+- `docs/request-flow.md`：说明该 skill 在 Codex 请求链路中的位置，以及 lane 返回后的处理流程
 - `references/prompt-templates.md`：可复用的 lane prompt 模板
 - `references/planner-details.md`：详细 lane 规划规则，只在拆分不清时加载
 - `opsx-parallel.md`：配套命令入口，用于轻量级并行规划和 prompt 生成

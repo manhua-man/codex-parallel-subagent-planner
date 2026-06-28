@@ -15,6 +15,8 @@ It focuses on:
 
 This repository contains the maintained version of the skill and its companion prompt assets.
 
+Execution still depends on Codex's host session, tools, and subagent launcher. This repository provides planning instructions and prompt assets; it does not provide a local runner, Python package, CLI, or session manager.
+
 Current scope:
 
 - built for Codex and Codex subagent workflows
@@ -82,7 +84,10 @@ parallel-subagent-planner/
 ├─ SKILL.md
 ├─ agents/
 │  └─ openai.yaml
+├─ docs/
+│  └─ request-flow.md
 ├─ references/
+│  ├─ planner-details.md
 │  └─ prompt-templates.md
 └─ opsx-parallel.md
 ```
@@ -91,6 +96,7 @@ File roles:
 
 - `SKILL.md`: core planning logic, lane heuristics, model/reasoning guidance
 - `agents/openai.yaml`: agent metadata and default prompt entry
+- `docs/request-flow.md`: where the skill fits in a Codex request and what happens after lanes return
 - `references/prompt-templates.md`: reusable lane prompt templates
 - `references/planner-details.md`: detailed lane planning rules loaded only when the split is unclear
 - `opsx-parallel.md`: companion command entry for lightweight planning and prompt generation

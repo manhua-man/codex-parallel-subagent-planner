@@ -1,4 +1,4 @@
 interface:
   display_name: "Parallel Subagents"
-  short_description: "Cost-aware Codex split gate"
-  default_prompt: "Use $parallel-subagent-planner as a cost-aware split check: launch only bounded Codex lanes, integrate and verify in the main thread, then ask before promoting any reusable long-term agent role."
+  short_description: "Schedule safe Codex execution lanes and project waves."
+  default_prompt: "Use $parallel-subagent-planner to schedule safe Codex execution lanes from an accepted goal, map project dependencies when needed, and integrate each wave."

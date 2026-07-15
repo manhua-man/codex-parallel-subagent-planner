@@ -35,12 +35,44 @@ LLM decides whether the skill applies
 
 ## Skill Flow
 
+The Scale Gate runs before lane planning:
+
+```text
+User goal
+  |
+  v
++--------------------------+
+| Scale gate               |
+| bounded task or project? |
++------------+-------------+
+             |
+       +-----+------+
+       |            |
+       v task       v project
++----------------+  +--------------------------+
+| Fast split     |  | Discover modules,        |
+| gate           |  | dependencies, contracts  |
++-------+--------+  +------------+-------------+
+        |                        |
+        |                        v
+        |            +--------------------------+
+        |            | Compute current parallel |
+        |            | frontier and wave plan   |
+        |            +------------+-------------+
+        +-------------------------+
+                                  |
+                                  v
+                           Lane safety gate
+```
+
+The task-mode path remains lightweight:
+
 ```text
 User goal
   |
   v
 +------------------------+
-| Fast split gate        |
+| Task-mode fast gate    |
 | strong split signal?   |
 +-----------+------------+
             |
@@ -124,6 +156,37 @@ User goal
 Final response
 ```
 
+## Project-Mode Loop
+
+Project mode launches one dependency-safe frontier at a time:
+
+```text
+Whole in-scope product surface
+  |
+  v
+Module matrix + dependency graph + shared-contract owners
+  |
+  v
+Current parallel frontier
+  |
+  v
+Launch minimum useful wave
+  |
+  v
+Collect + inspect + integrate + contract checks
+  |
+  v
+Update module states and dependency edges
+  |
+  +--> required modules remain: recompute frontier and repeat
+  |
+  +--> all required modules integrated: run broad final verification once
+```
+
+The planner records all material modules even when only Wave 0 can launch. It
+must not implement the first visible module and leave the remaining product
+surface undiscovered.
+
 ## Responsibilities
 
 Codex is responsible for:
@@ -135,13 +198,21 @@ Codex is responsible for:
 
 The skill is responsible for guiding:
 
+- Whether the request is a bounded task or a project-scale goal
+- How to discover the in-scope module graph and shared-contract ownership
 - Whether subagents should be considered
 - Which lanes are safe and useful enough to launch
 - Which lanes should be held, merged, or kept in the main thread
+- Which modules form the current parallel frontier and later waves
 - What compact context each child receives
 - Which read and write scopes each child may use
 - How child results are integrated and verified
+- How the frontier is recomputed after each project wave
 - When to ask the user about promoting a reusable subagent role
+
+It consumes product requirements, reviewed plans, architecture decisions, and
+OpenSpec tasks as inputs. It does not replace those workflows or select external
+coding-agent backends.
 
 ## Mandatory Long-Term Agent Check
 
@@ -168,3 +239,6 @@ This repository does not provide:
 - A session manager
 - A replacement for Codex subagent launching
 - Automatic `.codex/agents/` or `agents/` file creation without explicit approval
+- Product requirements, CEO/design/engineering plan review, or architecture approval
+- OpenSpec proposal/task ownership
+- External coding-agent backend or session routing

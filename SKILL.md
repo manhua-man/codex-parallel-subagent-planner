@@ -1,11 +1,37 @@
 ---
 name: parallel-subagent-planner
-description: Lightweight default parallelism gate for Codex coding, debugging, refactoring, testing, verification, docs writeback, and cleanup tasks. Use to decide cheaply whether to launch safe Codex subagents, then send minimal non-recursive worker prompts. Load detailed planning references only when lane boundaries, write scopes, model choices, or acceptance checks are unclear.
+description: Cost-aware Codex execution-parallelism planner for both bounded tasks and multi-module software work. Use to decide whether to launch safe subagents, discover execution modules and dependencies when an approved goal spans a complete app or several capabilities, schedule independent work in waves, and send minimal non-recursive worker prompts. Do not use it as a substitute for product requirements, architecture or plan review, OpenSpec artifact management, or external coding-agent backend routing.
 ---
 
 # Parallel Subagent Planner
 
-Default behavior: cost-aware split check. Consider subagents when there is one strong split signal; launch only lanes that are bounded enough to execute safely. Do not load detailed references unless the split is unclear.
+Default behavior: classify task scale first, then use the cheapest safe planning path. Keep bounded tasks on the fast split gate; build a module dependency graph for project-scale goals before choosing lanes.
+
+## Scale Gate
+
+Use **task mode** for one bounded change, one module, or already-named lanes under one accepted task. Continue to the Fast Gate without a broad repository scan.
+
+Use **project mode** when any one is true:
+
+- the user asks to build, rebuild, migrate, or finish a complete application or product
+- the goal spans multiple modules, services, packages, routes, or independently testable capabilities
+- several modules are visible but their dependencies, shared contracts, or ownership are not yet mapped
+- completing only the currently discussed module would leave material parts of the stated goal unplanned
+
+In project mode, read [references/project-scale-planning.md](references/project-scale-planning.md). Inventory the whole in-scope product surface, build the dependency graph, assign shared-contract ownership, and compute the current parallel frontier before launching implementation workers. If the module map is unclear, launch one bounded read-only discovery lane first and hold implementation.
+
+Do not silently reduce a project-scale request to the current module. Record the remaining modules and their launch or hold state even when only the first wave can start now.
+
+## Composition Boundaries
+
+Own execution-lane discovery, dependency scheduling, launch/hold decisions, and main-thread integration. Compose with other workflows instead of replacing them:
+
+- Product requirements or scope are unclear: use the relevant requirements/product skill first.
+- A plan needs CEO, design, engineering, or DX review: run the requested review or `autoplan` first; schedule the accepted plan afterward.
+- OpenSpec artifacts or tasks exist: keep `openspec-apply-change` as the governing implementation workflow and owner of task selection/status updates. Treat its pending tasks as authoritative lane inputs; do not regenerate, bypass, or create a competing task state.
+- The user requests Codex, Claude, Antigravity, Hermes, or another external backend: let `coding-agents` own backend routing. This skill may define lane boundaries only when explicitly combined.
+
+Do not run two execution orchestrators over the same write scopes at the same time. When another workflow already owns dispatch, provide a lane/dependency recommendation or wait for its handoff.
 
 ## Mandatory Long-Term Agent Check
 
@@ -37,11 +63,11 @@ Consider subagents when any one is true:
 - the user provided separable files, tests, docs, ledgers, or named workstreams
 - the task is broad or risky enough that parallel investigation, review, or cleanup is useful
 
-No strong signal means `Not split` and main-thread work. Considering subagents does not require launching them: launch only lanes with a clear goal, bounded read/write scope, a useful deliverable, and an acceptance check. Hold or merge lanes that are tiny, coupled, unclear, or likely to duplicate broad verification.
+No strong signal in task mode means `Not split` and main-thread work. In project mode, evaluate independent modules from the current parallel frontier rather than only the module currently being discussed. Considering subagents does not require launching them: launch only lanes with a clear goal, bounded read/write scope, a useful deliverable, and an acceptance check. Hold or merge lanes that are tiny, coupled, unclear, or likely to duplicate broad verification.
 
 ## Launch Protocol
 
-When launching, use the minimum viable lane count. Multiple write-enabled workers are allowed when the workstreams are genuinely independent and the expected benefit should justify child context cost. More than 3 lanes is allowed when the lanes have clearly independent write scopes, lane-local checks, and a concrete expected time or cost benefit.
+When launching, use the minimum viable lane count. Multiple write-enabled workers are allowed when the workstreams are genuinely independent and the expected benefit should justify child context cost. More than 3 lanes is allowed when the lanes have clearly independent write scopes, lane-local checks, and a concrete expected time or cost benefit. In project mode, launch only the current frontier; keep later waves held until their dependencies and contracts pass.
 
 One broad final test suite, such as `npm test`, is a merge risk. It does not forbid two workers, but each worker must have lane-local checks and the main thread must run the broad final suite once.
 
@@ -69,8 +95,8 @@ every child prompt. Do not rely on the child thread's default cwd, projectless
 output directory, or inherited context to find files. Prefer absolute Read/Write
 paths when the worker may run outside the target directory.
 
-After launching workers, the main thread waits once, then integrates and runs final verification. Do not edit a launched worker's write scope while it is running. If spawn still fails because of fork/model/reasoning constraints, treat it as a planner bug, retry once with the valid pairing, and preserve the failure as benchmark evidence.
+After launching a task-mode batch, the main thread waits once, integrates, and runs final verification. In project mode, the main thread integrates each wave, verifies shared contracts and lane-local outputs, updates module states, and recomputes the next parallel frontier. Run the broad final suite once after the final wave. Do not edit a launched worker's write scope while it is running. If spawn still fails because of fork/model/reasoning constraints, treat it as a planner bug, retry once with the valid pairing, and preserve the failure as benchmark evidence.
 
 ## Hold Or Escalate
 
-Do not launch a worker when write scopes overlap, work is small, a worker may need to touch another lane's files, it depends on unfinished investigation, acceptance is unclear, or scope cannot be bounded. If deeper lane planning, ready prompts, model/reasoning allocation, or held-lane output is needed, read [references/planner-details.md](references/planner-details.md).
+Do not launch a worker when write scopes overlap, work is small, a worker may need to touch another lane's files, it depends on unfinished investigation or a shared contract, acceptance is unclear, or scope cannot be bounded. If deeper lane planning, ready prompts, model/reasoning allocation, or held-lane output is needed, read [references/planner-details.md](references/planner-details.md).

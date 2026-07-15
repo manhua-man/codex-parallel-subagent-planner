@@ -160,3 +160,172 @@ Created agents/benchmark-fixture-steward.md
 ```
 
 File creation requires explicit user approval after the question.
+
+## 6. Complete Multi-Module Application
+
+Input:
+
+```text
+Build the complete application. It needs authentication, workspace CRUD, media
+uploads, a dashboard, and end-to-end tests. Decide what can run in parallel.
+```
+
+Expected output shape:
+
+```text
+Scale decision
+Project mode. The goal spans several independently testable capabilities and
+must not be reduced to the first module inspected.
+
+Module matrix
+- Shared contracts: owns session/workspace/media interfaces and route skeleton,
+  state ready, Wave 0, single write owner.
+- Auth: depends_on shared contracts, disjoint auth scope, state blocked until
+  Wave 0 passes.
+- Workspace: depends_on shared contracts, disjoint workspace scope, state
+  blocked until Wave 0 passes.
+- Media: depends_on shared contracts, disjoint media scope, state blocked until
+  Wave 0 passes.
+- Dashboard: depends_on Auth + Workspace + Media, state blocked.
+- E2E: depends_on integrated application, state blocked.
+
+Wave plan
+- Wave 0: Shared contracts
+- Wave 1: Auth, Workspace, Media in parallel
+- Wave 2: Dashboard and integration owner
+- Wave 3: E2E and broad final verification
+
+Current launch status
+- Launched: Shared contracts owner only
+- Held: Auth, Workspace, Media, Dashboard, E2E with dependency reasons
+```
+
+Must not:
+
+```text
+Start by implementing authentication and decide about other modules later.
+```
+
+## 7. Project Scope Requires Discovery
+
+Input:
+
+```text
+Finish this existing SaaS product. There are many packages, but no current
+architecture document. Parallelize whatever is safe.
+```
+
+Expected output shape:
+
+```text
+Scale decision
+Project mode, but the module graph and shared contracts are unclear.
+
+Current launch status
+- Launched: one read-only project-surface explorer
+- Held: all implementation workers, held_reason unclear_scope
+
+Explorer deliverable
+- module matrix covering all in-scope packages and capabilities
+- dependency and shared-contract graph
+- candidate write ownership and lane-local checks
+- proposed first parallel frontier
+```
+
+Must not launch one implementation worker per top-level directory before the
+explorer establishes module responsibility and dependency edges.
+
+## 8. Shared Router And Schema Block Parallel Writes
+
+Input:
+
+```text
+Implement account, billing, projects, and admin modules. Every module needs to
+add routes and database tables. Use as many agents as useful.
+```
+
+Expected output shape:
+
+```text
+Scale decision
+Project mode. Capability implementations may become independent, but the route
+registry and schema are shared contracts.
+
+Wave plan
+- Wave 0: one contract owner defines route slots, schema/migration ownership,
+  public types, and module-local write scopes.
+- Wave 1: account, billing, projects, and admin workers may launch in parallel
+  only if they no longer edit the shared router or schema files.
+- Integration wave: the contract owner applies or reconciles shared wiring.
+```
+
+Must not assign the same router, migration, manifest, or shared type file to
+multiple concurrent workers.
+
+## 9. Recompute The Frontier
+
+Input:
+
+```text
+The contract wave is complete. Auth passed, media failed its local tests, and
+workspace discovered a new storage dependency. Continue the project plan.
+```
+
+Expected output shape:
+
+```text
+Integration and replan note
+- Mark Auth integrated.
+- Keep Media blocked on its failed local acceptance check.
+- Add Storage to the module graph and hold Workspace on that dependency.
+- Recompute the frontier; launch only modules whose dependencies and contracts
+  still pass.
+- Do not reuse the original Wave 2 plan unchanged.
+```
+
+## 10. Plan Review Owns The Decision First
+
+Input:
+
+```text
+Run autoplan on this draft architecture, challenge the product scope, and then
+parallelize whatever implementation survives review.
+```
+
+Expected output shape:
+
+```text
+Composition decision
+- Autoplan owns scope and plan review first.
+- Parallel Subagent Planner does not dispatch implementation while review
+  decisions are unresolved.
+- After approval, consume the accepted implementation steps, build the
+  execution dependency graph, and schedule the current frontier.
+```
+
+Must not run autoplan and implementation workers concurrently against an
+unapproved plan.
+
+## 11. OpenSpec Tasks Are Authoritative
+
+Input:
+
+```text
+This repository has an active OpenSpec change with proposal, design, and tasks.
+Use subagents to continue implementation.
+```
+
+Expected output shape:
+
+```text
+Composition decision
+- Keep `openspec-apply-change` as the governing workflow for task selection and
+  checkbox/status updates.
+- Read the active change and treat its pending tasks as the implementation
+  scope and lane inputs.
+- Preserve OpenSpec artifact ownership and do not create a second task state.
+- Map task dependencies and write scopes, then launch only the current safe
+  frontier.
+- Do not regenerate proposal/design/tasks or invent a parallel task list that
+  competes with OpenSpec.
+```

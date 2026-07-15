@@ -21,6 +21,8 @@ prompts, or when a lane is held and needs a prompt for later launch.
 
 Use the skill's core rules for:
 
+- task-scale versus project-scale classification
+- project module discovery, dependency graphs, shared-contract ownership, and wave scheduling
 - fast split gating
 - launch versus hold decisions
 - read/write scope boundaries

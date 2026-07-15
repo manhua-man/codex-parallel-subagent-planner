@@ -21,6 +21,23 @@ After changing the repository, sync the installed skill directory from the
 canonical repository so Codex uses the same `SKILL.md` and references that were
 committed.
 
+## Content Ownership
+
+Keep one normative owner for each rule family:
+
+| File | Ownership |
+| --- | --- |
+| `SKILL.md` | Normative scale gate, composition boundary, launch protocol, and hold rules |
+| `references/project-scale-planning.md` | Normative project-mode module graph, contracts, frontier, waves, and replanning |
+| `references/planner-details.md` | Normative lane fields, cost, model, and hold mechanics |
+| `references/prompt-templates.md` | Prompt wording only; do not introduce new planning rules |
+| `examples/fixtures.md` | Behavioral regression examples; do not become a second specification |
+| `docs/request-flow*.md` | Explanatory flow mirrors; do not introduce policy absent from normative files |
+| `README*.md` | User-facing summary and examples; link to normative sources for detail |
+| `opsx-parallel.md` | Thin invocation wrapper only |
+
+When two files disagree, fix the normative owner first, then update mirrors. Do not resolve drift by copying the same full rule into every file.
+
 ## Update Checklist
 
 1. Keep `SKILL.md` concise. Move detailed criteria, examples, and maintenance
@@ -35,26 +52,17 @@ committed.
    behavior changes.
 6. Update `docs/request-flow.md` first when request flow changes, then mirror
    the same semantic change into `docs/request-flow.zh-CN.md`.
-7. Run `git diff --check`.
-8. Sync the local installed skill directory.
-9. Commit and push the canonical repository.
+7. Audit trigger overlap with product/plan review, OpenSpec, and backend-router skills whenever the description or project mode changes.
+8. Search for conflicting copies of changed rules across README, docs, references, fixtures, and wrappers.
+9. Run `git diff --check`.
+10. Sync the local installed skill directory.
+11. Commit and push the canonical repository.
 
 ## Benchmark Notes
 
-Benchmark snapshots live in `references/benchmarks.md`. When adding a new
-snapshot, include:
-
-- prompt group
-- spawn count
-- fork/model/reasoning errors
-- total tokens
-- estimated cost, when available
-- wall-clock time
-- pass/fail result
-- short note on what changed in the skill since the previous snapshot
-
-Do not claim a benchmark improvement unless the same or comparable task was run
-against a baseline and the difference is visible in the recorded metrics.
+Benchmark snapshots and their recording rules live only in
+`references/benchmarks.md`. Read that file before adding or interpreting a
+snapshot; do not copy its metric contract into maintenance docs.
 
 ## Drift Check
 

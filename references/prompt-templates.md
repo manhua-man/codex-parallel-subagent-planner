@@ -6,8 +6,10 @@ main thread unless the user asks for Full output or a held lane needs a later
 manual launch prompt.
 
 Use the user's concrete files, tests, docs, ledgers, diffs, and acceptance points
-first. If context is incomplete, state a provisional scope instead of doing a
-broad repository scan.
+first. In task mode, state a provisional scope instead of doing a broad
+repository scan. In project mode, use the bounded Project Surface Discovery
+Lane when the module graph is incomplete; do not pretend the current module is
+the whole product.
 
 ## Minimal Child Prompt Shape
 
@@ -50,6 +52,34 @@ delegate, launch subagents, or make code changes unless explicitly requested.
 Avoid unrelated repo scans unless the listed scope is insufficient.
 Return: findings, recommended edit scope, verification suggestions, and handoff
 summary.
+```
+
+## Project Surface Discovery Lane
+
+Use this only when project mode is selected and the full module graph is not
+yet clear enough to launch implementation safely.
+
+```text
+You are the project-surface explorer subagent.
+
+Goal: map the complete in-scope product into coherent modules and identify the
+first safe parallel frontier. Do not implement product code.
+Working directory: [absolute repository/worktree directory]
+Read: [user brief/spec/roadmap, repository and package tree, architecture docs,
+route/service/schema/test registries, current worktree status]
+Write: none
+Acceptance: return a module matrix with owns, depends_on, shared_contracts,
+candidate read/write scopes, lane-local acceptance, launch state, and held
+reason; identify one owner for every shared contract; propose Wave 0 and the
+first implementation frontier.
+Preflight: switch to Working directory or use absolute paths, then verify the
+listed authoritative inputs exist. Report missing inputs and distinguish them
+from optional docs.
+Boundary: execute this discovery locally in this child thread. Do not split,
+delegate, launch subagents, edit files, or equate top-level directories with
+independent modules without responsibility and dependency evidence.
+Return: scale confirmation, complete module matrix, dependency/contract notes,
+current frontier, wave plan, uncertainties, and held implementation lanes.
 ```
 
 ## Worker Lane

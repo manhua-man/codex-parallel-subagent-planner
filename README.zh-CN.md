@@ -2,11 +2,13 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-`parallel-subagent-planner` 是一个面向 Codex 的 skill，用来辅助判断任务是否存在有价值的并行拆分，并为边界足够清楚的 lane 发送最小、非递归的 prompt。
+`parallel-subagent-planner` 是一个面向 Codex 的 skill，用来在轻量任务拆分和项目级模块规划之间选择，并为边界足够清楚的 lane 发送最小、非递归的 prompt。
 
 它主要负责：
 
 - 判断任务是否值得并行拆分
+- 区分单一边界任务与完整的多模块软件目标
+- 在项目级工作中发现模块依赖、共享契约和可启动的并行前沿
 - 让默认判断路径保持足够短
 - 规划 lane 归属，避免写入范围重叠
 - 为每条 lane 建议 `agent type`、模型和 reasoning effort
@@ -22,6 +24,28 @@
 - 面向 Codex 及 Codex 子智能体工作流
 - 文中的模型与 `agent type` 建议基于 Codex 当前支持的子智能体能力
 - 目前不声明兼容 Claude 或其他 agent runtime，除非后续有明确文档说明
+
+## 工作模式
+
+| 模式 | 适用场景 | Planner 行为 |
+|---|---|---|
+| Task Mode | 一个边界清楚的改动、一个模块，或已经确认的具名 lane | 使用轻量拆分闸门，不做全仓重型发现 |
+| Project Mode | 完整应用或已确认目标跨多个模块和共享契约 | 盘点完整执行范围，指定契约 owner，按依赖安全的 wave 调度 |
+
+skill 加载后会自动选择模式。显式调用 `$parallel-subagent-planner` 可以保证 skill 被加载；不显式调用时，是否自动激活仍由 Codex 根据 skill description 与用户请求匹配决定。
+
+## 组合边界
+
+这个 skill 只调度实现工作，不决定产品战略，也不替代专门工作流。
+
+| 工作流 | 负责什么 | 与 Planner 的关系 |
+|---|---|---|
+| 产品需求 / PRD | 做什么、为什么做 | 先确认范围，再把接受后的目标交给 planner |
+| `autoplan` 和 plan-review skills | CEO、设计、工程和 DX 审查 | 先完成审查，planner 再调度接受后的实现 |
+| OpenSpec | Proposal、design、spec、task 选择和状态 | `openspec-apply-change` 继续主导；planner 只在 pending tasks 内调度安全 lane |
+| `coding-agents` | 外部 backend 选择和 session 路由 | backend 路由与 lane 调度分离；只有用户明确要求时才组合 |
+
+禁止两个执行编排器同时写同一批 write scopes。
 
 ## Quick Example
 
@@ -77,6 +101,7 @@ parallel-subagent-planner/
 │  ├─ benchmarks.md
 │  ├─ long-term-agents.md
 │  ├─ maintenance.md
+│  ├─ project-scale-planning.md
 │  ├─ planner-details.md
 │  └─ prompt-templates.md
 └─ opsx-parallel.md
@@ -92,6 +117,7 @@ parallel-subagent-planner/
 - `references/benchmarks.md`：历史 benchmark snapshots 和记录规则
 - `references/long-term-agents.md`：可复用 agent promotion 的详细判断标准
 - `references/maintenance.md`：source of truth、漂移检查和 benchmark 更新说明
+- `references/project-scale-planning.md`：完整软件目标的模块图、共享契约 owner、并行前沿、wave 和动态重规划规则
 - `references/prompt-templates.md`：可复用的 lane prompt 模板
 - `references/planner-details.md`：详细 lane 规划规则，只在拆分不清时加载
 - `opsx-parallel.md`：配套命令入口，用于轻量级并行规划和 prompt 生成
@@ -99,9 +125,11 @@ parallel-subagent-planner/
 ## 设计原则
 
 - 追求最小必要 lane 数，而不是机械拆成固定数量
+- 先判断规模：单任务保持轻量，多模块软件必须先盘点完整范围再并行
+- 项目 wave 必须服从依赖图，不能把完整产品目标缩减成眼前第一个模块
 - 发车成本感知：出现任一强拆分信号就考虑子智能体，但多个共享验收的小型写回应合并，而不是每个文件单独开 worker
 - 子线程 prompt 必须禁止递归拆分：已分配的 lane 只在子线程本地执行，不再继续发车
-- 默认先按任务意图做规划，而不是先做重型仓库分析
+- Task Mode 避免重型全仓发现；Project Mode 在执行图未知时只启动一个有界 discovery lane
 - 必须尊重真实执行约束，只使用实际可用的 agent type
 - 考虑子智能体不等于一定发车；只有目标、读写范围、交付物和验收都清楚的 lane 才启动
 - 允许多个可写 worker，但 prompt 必须紧凑、写域必须分离，并且预期收益应能覆盖子线程上下文成本

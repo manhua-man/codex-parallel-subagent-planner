@@ -2,11 +2,13 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-`parallel-subagent-planner` is a Codex skill that helps decide whether a task has a useful parallel split, then sends minimal non-recursive prompts for lanes that are bounded enough to launch.
+`parallel-subagent-planner` is a Codex skill that chooses between a lightweight task split and project-scale module planning, then sends minimal non-recursive prompts for lanes that are bounded enough to launch.
 
 It focuses on:
 
 - deciding whether a task should be split at all
+- classifying bounded tasks versus complete multi-module software goals
+- discovering module dependencies, shared contracts, and wave-ready frontiers for project-scale work
 - keeping the default decision path small
 - choosing lane ownership and avoiding overlapping write scopes
 - suggesting `agent type`, model, and reasoning effort for each lane
@@ -22,6 +24,28 @@ Current scope:
 - built for Codex and Codex subagent workflows
 - model and `agent type` guidance is based on Codex-supported subagents
 - Claude or other agent runtimes are not claimed as supported here unless documented explicitly later
+
+## Operating Modes
+
+| Mode | Use when | Planner behavior |
+|---|---|---|
+| Task mode | One bounded change, one module, or accepted named lanes | Run the lightweight split gate; avoid broad repository discovery |
+| Project mode | A complete application or accepted goal spans multiple modules and shared contracts | Map the full execution surface, assign contract owners, and schedule dependency-safe waves |
+
+Mode selection is automatic after the skill loads. Explicitly invoking `$parallel-subagent-planner` guarantees the skill is loaded; automatic skill activation still depends on Codex matching the request to the skill description.
+
+## Composition Boundaries
+
+This skill schedules implementation work; it does not decide product strategy or replace specialized workflows.
+
+| Workflow | Owns | Relationship to this planner |
+|---|---|---|
+| Product requirements / PRD | What should be built and why | Resolve scope first; then pass the accepted goal to the planner |
+| `autoplan` and plan-review skills | CEO, design, engineering, and DX review | Review first; planner schedules the accepted implementation |
+| OpenSpec | Proposal, design, specs, task selection, and task status | `openspec-apply-change` remains governing; planner only schedules safe lanes within its pending tasks |
+| `coding-agents` | External backend selection and session routing | Keep backend routing separate; combine only when the user explicitly asks |
+
+Never run two execution orchestrators against the same write scopes concurrently.
 
 ## Quick Example
 
@@ -77,6 +101,7 @@ parallel-subagent-planner/
 │  ├─ benchmarks.md
 │  ├─ long-term-agents.md
 │  ├─ maintenance.md
+│  ├─ project-scale-planning.md
 │  ├─ planner-details.md
 │  └─ prompt-templates.md
 └─ opsx-parallel.md
@@ -92,6 +117,7 @@ File roles:
 - `references/benchmarks.md`: historical benchmark snapshots and recording rules
 - `references/long-term-agents.md`: detailed criteria for reusable agent promotion
 - `references/maintenance.md`: source-of-truth, drift check, and benchmark update guidance
+- `references/project-scale-planning.md`: module graph, shared-contract ownership, frontier, wave, and replanning rules for complete software goals
 - `references/prompt-templates.md`: reusable lane prompt templates
 - `references/planner-details.md`: detailed lane planning rules loaded only when the split is unclear
 - `opsx-parallel.md`: companion command entry for lightweight planning and prompt generation
@@ -99,9 +125,11 @@ File roles:
 ## Design Principles
 
 - Minimum viable lanes, not arbitrary lane counts
+- Scale first: keep bounded tasks cheap, but inventory the complete in-scope product before parallelizing multi-module software
+- Project waves follow the dependency graph; never reduce a complete-product goal to the first visible module
 - Cost-aware launches: consider subagents on one strong split signal, but merge tiny same-gate writebacks instead of spawning one worker per file
 - Child prompts are non-recursive: spawned lanes execute locally and do not split or launch more subagents
-- Task-first planning before repository-heavy analysis
+- In task mode, avoid repository-heavy discovery; in project mode, use one bounded discovery lane when the execution graph is unknown
 - Real execution constraints matter: only use actual supported agent types
 - Considering subagents is not the same as launching them; launch only lanes with a clear goal, bounded scopes, useful deliverable, and acceptance checks
 - Multiple write-enabled workers are allowed when prompts are compact, write scopes are disjoint, and expected benefit should justify child context cost

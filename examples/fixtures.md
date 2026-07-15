@@ -329,3 +329,26 @@ Composition decision
 - Do not regenerate proposal/design/tasks or invent a parallel task list that
   competes with OpenSpec.
 ```
+
+## 12. Resolve The Desktop Launch Adapter
+
+Input:
+
+```text
+The generic spawn_agent tool has no model or effort fields, but Codex Desktop
+also exposes create_thread with model and thinking. Launch the approved lane
+with gpt-5.6-luna and high reasoning.
+```
+
+Expected output shape:
+
+```text
+Launch adapter decision
+- Do not use generic spawn_agent for this Planner lane.
+- Use create_thread with model gpt-5.6-luna and thinking high.
+- Send only the compact Context Brief to the new project-local/background task.
+- Do not hold the lane merely because one different adapter lacks routing fields.
+```
+
+Must hold only when no authorized host adapter can pass both an allowlisted model
+and explicit effort.

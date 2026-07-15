@@ -193,6 +193,7 @@ Codex is responsible for:
 
 - Loading the skill into context
 - Providing actual subagent launch capability
+- Resolving all host launch adapters before declaring model routing unavailable; in Codex Desktop, an authorized new lane can use `create_thread(model, thinking, target)` even when a generic `spawn_agent` schema lacks model fields
 - Managing sessions, tools, file access, and terminal execution
 - Rendering the final answer
 

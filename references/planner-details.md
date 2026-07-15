@@ -110,6 +110,8 @@ Show full ready prompts only when the user asks for `Full`, explicitly asks for 
 - Separate Codex subagents still receive runtime base context; this skill reduces copied history, recursive planning, and lane prompt size, but cannot make agents share one prompt context.
 - Require explicit `fork_context=false`, a compact Context Brief, one allowlisted 5.6 model, and one explicit `reasoning_effort` for every launch.
 - Never use `fork_context=true`; summarize the required context instead of inheriting a parent model that may fall outside the allowlist.
+- Resolve all launch adapters exposed by the host before declaring model routing unavailable. On Codex Desktop, map `reasoning_effort` to `thinking` and use an authorized `create_thread(model, thinking, target)` lane when generic `spawn_agent` lacks model fields.
+- Do not use a generic spawn adapter that cannot pass model and effort, but do not treat that adapter's schema as proof that every host adapter has the same limitation.
 - If the runtime cannot pass both model and effort explicitly, hold the lane or execute it in the main thread.
 - Do not name this skill inside child prompts.
 - Default to main-thread implementation when the split is merely "two small edits in different folders".

@@ -186,6 +186,7 @@ Codex 负责：
 
 - 加载 skill 到上下文
 - 提供真实的子智能体启动能力
+- 在判定模型路由不可用前解析宿主提供的全部发车适配器；在 Codex Desktop 中，即使通用 `spawn_agent` 没有模型字段，已获授权的新 lane 仍可使用 `create_thread(model, thinking, target)`
 - 管理 session、tools、文件访问和终端执行
 - 渲染最终回复
 

@@ -55,10 +55,23 @@ blast radius, cross-boundary coupling, expensive failure modes, or weak
 acceptance signals. Lower them when the lane is narrow, reversible, well
 bounded, or has concrete tests.
 
-Available model tiers are `gpt-5.5`, `gpt-5.4`, and `gpt-5.4-mini`. Available
-reasoning efforts are `low`, `medium`, `high`, and `xhigh`. Do not copy
-`gpt-5.5+xhigh` from the parent unless the child lane independently justifies
-that cost.
+The child-model allowlist is exactly `gpt-5.6-terra`, `gpt-5.6-luna`, and
+`gpt-5.6-sol`. Do not use another model family, inherit the parent model, or
+launch without an explicit model. Sol is not the default; select the variant
+from the lane:
+
+| Variant | Prefer for |
+| --- | --- |
+| `gpt-5.6-terra` | cross-module architecture, shared contracts, risky integration, security-sensitive investigation, ambiguous root cause |
+| `gpt-5.6-luna` | read-only discovery, evidence synthesis, independent verification, test design, bounded analysis |
+| `gpt-5.6-sol` | tightly scoped implementation, mechanical transformation, disjoint writes, concrete lane-local tests |
+
+Reasoning efforts are `low`, `medium`, `high`, and `xhigh`. Choose effort
+independently from model: `low` for deterministic scans or mechanical edits,
+`medium` for bounded implementation or verification, `high` for ambiguous or
+cross-boundary work, and `xhigh` only for exceptional high-consequence work
+with weak evidence. Record one sentence of rationale when using Terra, `high`,
+or `xhigh`.
 
 ## Hold Rules
 
@@ -95,9 +108,9 @@ Show full ready prompts only when the user asks for `Full`, explicitly asks for 
 - Prefer fewer launched threads over finer file-level purity.
 - Do not create one worker per tiny docs/config/ledger file when one bounded worker or main-thread work is enough.
 - Separate Codex subagents still receive runtime base context; this skill reduces copied history, recursive planning, and lane prompt size, but cannot make agents share one prompt context.
-- Default to explicit `fork_context=false`: pass only the Context Brief and assign child `agent_type`, `model`, and `reasoning_effort` when they materially improve cost or quality.
-- Preflight spawn arguments before every launch: `fork_context=false` may use `agent_type`, `model`, and `reasoning_effort`; `fork_context=true` must omit all three overrides. A violation is a planner bug, not a normal retry path.
-- Use `fork_context=true` only when the lane cannot be safely described without full conversation history.
+- Require explicit `fork_context=false`, a compact Context Brief, one allowlisted 5.6 model, and one explicit `reasoning_effort` for every launch.
+- Never use `fork_context=true`; summarize the required context instead of inheriting a parent model that may fall outside the allowlist.
+- If the runtime cannot pass both model and effort explicitly, hold the lane or execute it in the main thread.
 - Do not name this skill inside child prompts.
 - Default to main-thread implementation when the split is merely "two small edits in different folders".
 - Prefer read-only explorer or verification lanes when implementation workers are likely to duplicate effort.
@@ -108,4 +121,4 @@ Show full ready prompts only when the user asks for `Full`, explicitly asks for 
 - Every launched child prompt must include an absolute working directory and a
   preflight check for Read/Write targets. If the working directory is unknown or
   the lane cannot use absolute paths, hold the lane or do it in the main thread.
-- If a spawn attempt still fails because of full-history/model/reasoning constraints, retry once with the valid pairing and record the failure in benchmark notes. Target fork/model/reasoning failures: zero.
+- If a spawn attempt fails because the selected 5.6 variant or effort is unavailable, retry once with another allowed Terra/Luna/Sol pairing justified by the lane. Never fall back outside the allowlist. Record the failure in benchmark notes. Target fork/model/reasoning failures: zero.

@@ -29,7 +29,7 @@ Own execution-lane discovery, dependency scheduling, launch/hold decisions, and 
 - Product requirements or scope are unclear: use the relevant requirements/product skill first.
 - A plan needs CEO, design, engineering, or DX review: run the requested review or `autoplan` first; schedule the accepted plan afterward.
 - OpenSpec artifacts or tasks exist: keep `openspec-apply-change` as the governing implementation workflow and owner of task selection/status updates. Treat its pending tasks as authoritative lane inputs; do not regenerate, bypass, or create a competing task state.
-- The user requests Codex, Claude, Antigravity, Hermes, or another external backend: let `coding-agents` own backend routing. This skill may define lane boundaries only when explicitly combined.
+- The user requests an external backend: let the backend-routing skill own that choice. This skill may define lane boundaries only when explicitly combined.
 
 Do not run two execution orchestrators over the same write scopes at the same time. When another workflow already owns dispatch, provide a lane/dependency recommendation or wait for its handoff.
 
@@ -71,7 +71,15 @@ When launching, use the minimum viable lane count. Multiple write-enabled worker
 
 One broad final test suite, such as `npm test`, is a merge risk. It does not forbid two workers, but each worker must have lane-local checks and the main thread must run the broad final suite once.
 
-Default spawn mode is explicit `fork_context=false`: pass only a compact Context Brief and assign `agent_type`, `model`, and `reasoning_effort` when they materially improve cost or quality. Child model and reasoning are lane-level judgments, not copies of the main thread settings; choose the lowest capable setting from the lane's risk, ambiguity, blast radius, and expected savings. Before spawning, normalize the launch args so `fork_context=true` is never combined with `agent_type`, `model`, or `reasoning_effort`. Use `fork_context=true` only when the lane cannot be safely described without full conversation history; if inheriting context, omit all three overrides.
+Every child launch must use `fork_context=false`, a compact Context Brief, an explicit 5.6 model, and an explicit `reasoning_effort`. The only allowed child models are `gpt-5.6-terra`, `gpt-5.6-luna`, and `gpt-5.6-sol`. Do not inherit the parent model, omit the model, or fall back to another model family. Choose the model and effort from the lane's task shape, ambiguity, blast radius, and acceptance strength; Sol is not an unconditional default. If the runtime cannot pass an allowed model and effort explicitly, hold the lane or execute it in the main thread.
+
+Use this routing baseline, then adjust effort independently:
+
+- `gpt-5.6-terra`: cross-module architecture, shared contracts, risky integration, security-sensitive investigation, or ambiguous root-cause work.
+- `gpt-5.6-luna`: read-only discovery, evidence synthesis, independent verification, test design, and bounded analysis with clear outputs.
+- `gpt-5.6-sol`: tightly scoped implementation or mechanical transformation with disjoint writes and concrete lane-local tests.
+
+Use `low` for deterministic scans and mechanical edits, `medium` for bounded implementation or verification, `high` for ambiguous or cross-boundary work, and `xhigh` only for exceptional high-consequence work with weak signals. Model and effort are separate decisions; do not bind one effort permanently to a model.
 
 Child prompts must be short and non-recursive:
 
@@ -95,7 +103,7 @@ every child prompt. Do not rely on the child thread's default cwd, projectless
 output directory, or inherited context to find files. Prefer absolute Read/Write
 paths when the worker may run outside the target directory.
 
-After launching a task-mode batch, the main thread waits once, integrates, and runs final verification. In project mode, the main thread integrates each wave, verifies shared contracts and lane-local outputs, updates module states, and recomputes the next parallel frontier. Run the broad final suite once after the final wave. Do not edit a launched worker's write scope while it is running. If spawn still fails because of fork/model/reasoning constraints, treat it as a planner bug, retry once with the valid pairing, and preserve the failure as benchmark evidence.
+After launching a task-mode batch, the main thread waits once, integrates, and runs final verification. In project mode, the main thread integrates each wave, verifies shared contracts and lane-local outputs, updates module states, and recomputes the next parallel frontier. Run the broad final suite once after the final wave. Do not edit a launched worker's write scope while it is running. If spawn fails because the selected 5.6 model or effort is unavailable, retry once with another allowed Terra/Luna/Sol pairing justified by the same lane; never fall back outside the 5.6 allowlist. Preserve the failure as benchmark evidence.
 
 ## Hold Or Escalate
 

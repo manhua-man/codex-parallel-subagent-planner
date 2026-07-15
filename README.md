@@ -66,8 +66,8 @@ Why parallel
 The task has one read-only behavior check and one implementation lane, but the implementation depends on the check result.
 
 Lane summary
-- Export behavior audit: agent type explorer, model gpt-5.4, reasoning high, read_scope src/runtime/session-view-service.ts + src/extension.ts, write_scope none, deliverable behavior map, can_launch yes, held_reason safe
-- Export flow worker: agent type worker, model gpt-5.5, reasoning high, read_scope same files plus audit handoff, write_scope src/runtime/session-view-service.ts + src/extension.ts, deliverable behavior-preserving refactor, can_launch no, held_reason blocked
+- Export behavior audit: agent type explorer, model gpt-5.6-luna, reasoning_effort high, read_scope src/runtime/session-view-service.ts + src/extension.ts, write_scope none, deliverable behavior map, can_launch yes, held_reason safe
+- Export flow worker: agent type worker, model gpt-5.6-sol, reasoning_effort medium, read_scope same files plus audit handoff, write_scope src/runtime/session-view-service.ts + src/extension.ts, deliverable behavior-preserving refactor, can_launch no, held_reason blocked
 
 Launch status
 - Launched: Export behavior audit

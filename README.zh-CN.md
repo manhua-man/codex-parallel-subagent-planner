@@ -66,8 +66,8 @@ Why parallel
 这个任务包含一条只读行为确认 lane 和一条实现 lane，但实现依赖前者的调查结果。
 
 Lane summary
-- Export behavior audit：agent type explorer，model gpt-5.4，reasoning high，read_scope src/runtime/session-view-service.ts + src/extension.ts，write_scope none，deliverable 行为映射，can_launch yes，held_reason safe
-- Export flow worker：agent type worker，model gpt-5.5，reasoning high，read_scope 同上再加 audit handoff，write_scope src/runtime/session-view-service.ts + src/extension.ts，deliverable 保持行为不变的重构，can_launch no，held_reason blocked
+- Export behavior audit：agent type explorer，model gpt-5.6-luna，reasoning_effort high，read_scope src/runtime/session-view-service.ts + src/extension.ts，write_scope none，deliverable 行为映射，can_launch yes，held_reason safe
+- Export flow worker：agent type worker，model gpt-5.6-sol，reasoning_effort medium，read_scope 同上再加 audit handoff，write_scope src/runtime/session-view-service.ts + src/extension.ts，deliverable 保持行为不变的重构，can_launch no，held_reason blocked
 
 Launch status
 - Launched：Export behavior audit

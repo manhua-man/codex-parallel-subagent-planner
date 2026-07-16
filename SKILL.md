@@ -81,7 +81,7 @@ Use this routing baseline, then adjust effort independently:
 - `gpt-5.6-luna`: read-only discovery, evidence synthesis, independent verification, test design, and bounded analysis with clear outputs.
 - `gpt-5.6-sol`: tightly scoped implementation or mechanical transformation with disjoint writes and concrete lane-local tests.
 
-Use `low` for deterministic scans and mechanical edits, `medium` for bounded implementation or verification, `high` for ambiguous or cross-boundary work, and `xhigh` only for exceptional high-consequence work with weak signals. Model and effort are separate decisions; do not bind one effort permanently to a model.
+Use `low` for deterministic scans and mechanical edits, `medium` for bounded implementation or verification, and `high` for ambiguous or cross-boundary work. Reserve stronger settings for exceptional high-consequence work with weak signals. Respect the Desktop adapter's model-specific thinking bounds: Terra supports `low` through `ultra`, Luna supports `low` through `max` and must never receive `ultra`, and Sol supports `low` through `ultra`. Model and effort are separate decisions; do not bind one effort permanently to a model or exceed its supported bound.
 
 Child prompts must be short and non-recursive:
 

@@ -66,12 +66,14 @@ from the lane:
 | `gpt-5.6-luna` | read-only discovery, evidence synthesis, independent verification, test design, bounded analysis |
 | `gpt-5.6-sol` | tightly scoped implementation, mechanical transformation, disjoint writes, concrete lane-local tests |
 
-Reasoning efforts are `low`, `medium`, `high`, and `xhigh`. Choose effort
-independently from model: `low` for deterministic scans or mechanical edits,
-`medium` for bounded implementation or verification, `high` for ambiguous or
-cross-boundary work, and `xhigh` only for exceptional high-consequence work
-with weak evidence. Record one sentence of rationale when using Terra, `high`,
-or `xhigh`.
+Choose reasoning effort independently from model: `low` for deterministic scans
+or mechanical edits, `medium` for bounded implementation or verification, and
+`high` for ambiguous or cross-boundary work. Reserve stronger settings for
+exceptional high-consequence work with weak evidence. The Desktop adapter's
+model-specific bounds are Terra `low` through `ultra`, Luna `low` through `max`,
+and Sol `low` through `ultra`; never send Luna `ultra` or exceed a selected
+model's bound. Record one sentence of rationale when using Terra, `high`,
+`xhigh`, `max`, or `ultra`.
 
 ## Hold Rules
 

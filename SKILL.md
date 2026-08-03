@@ -4,10 +4,11 @@ description: >-
   Plan safe Codex subagent execution for bounded coding tasks and multi-module
   software work. Use when deciding whether parallel agents would help, splitting
   an accepted implementation goal into independent lanes, mapping dependencies
-  and shared write boundaries, scheduling project work in waves, or generating
-  bounded non-recursive child prompts. Do not use it to define product
-  requirements, approve architecture, replace specification workflows, or route
-  work to external coding-agent backends.
+  and shared write boundaries, scheduling project work in waves, outputting a
+  machine-readable schema plan, evaluating long-term agent candidates, or
+  generating bounded non-recursive child prompts. Do not use it to define
+  product requirements, approve architecture, replace specification workflows, or
+  route work to external coding-agent backends.
 ---
 
 # Parallel Subagent Planner
@@ -39,7 +40,7 @@ If any condition fails or there is no strong parallel benefit, do NOT split: exe
 
 ## 3. Define Safe Lanes
 
-Assign each lane an explicit role (`explorer`, `worker`, or `default`), read/write scopes, deliverable, acceptance criteria, and model profile:
+Assign each lane an explicit role (`explorer`, `worker`, `verifier`, or `default`), read/write scopes, deliverable, acceptance criteria, and model profile:
 - `deep`: ambiguous root cause, security-sensitive work, complex shared contracts, high-risk integration, final review.
 - `balanced`: bounded implementation, ordinary refactoring, standard feature development, targeted verification.
 - `fast`: read-only scans, information extraction, evidence collection, deterministic transformations.
@@ -86,16 +87,39 @@ In task mode: wait for child lanes to complete, integrate changes, and run main-
 
 In project mode: after each wave completes, verify shared contracts and outputs, update module states, recompute the next parallel frontier, and launch the next wave.
 
-## 7. Output Format
+## 7. Output Modes
 
-Return `Compact` format by default:
+### Compact (Default)
+Return Compact by default for human review:
 1. **Why split or not split**: brief rationale.
 2. **Launch now**: list of ready lanes with model profiles and scopes.
 3. **Held lanes**: list of held lanes with specific hold reasons.
 4. **Integration note**: main thread verification and integration sequence.
 
-Return `Full` format only when explicitly requested:
+### Full
+Return Full when requested or during complex diagnostic reviews:
 1. Scale decision & surface map.
 2. Complete lane table with dependencies & contract owners.
 3. Current wave & ready child prompts.
 4. Integration and replan instructions.
+
+### Machine
+Return Machine JSON only when explicitly requested, when another program will consume the result, or when downstream schedulers require a versioned contract:
+- Follow `schema/planner-plan.schema.json` with `"schema_version": "1.0"`.
+- Do not include Markdown fences or conversational text.
+
+## 8. Long-Term Agent Candidates
+
+After completing integration, optionally evaluate whether a subagent role qualifies as a reusable custom agent.
+
+Only propose promotion when:
+- The same bounded responsibility has appeared repeatedly.
+- Its scope, inputs, outputs, and acceptance checks are stable.
+- A dedicated agent would eliminate repeated manual setup.
+
+**Policy Settings** (`promotion_check`):
+- `off`: do not evaluate promotion.
+- `silent` (default): evaluate internally; report candidates only when a high-confidence candidate exists.
+- `ask`: explicitly report qualified candidates after integration.
+
+Never propose more than one candidate per task. Never generate or write a custom agent `.toml` file without explicit user approval. Read [references/long-term-agents.md](references/long-term-agents.md) when a qualified candidate exists or when creating a persistent agent spec.

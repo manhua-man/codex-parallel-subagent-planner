@@ -1,0 +1,185 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ParallelSubagentPlan",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "mode",
+    "decision",
+    "contracts",
+    "lanes",
+    "frontier"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": ["1.0"]
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["task", "project"]
+    },
+    "decision": {
+      "type": "object",
+      "required": ["split", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "split": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "contracts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "owner", "state", "description"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "owner": {
+            "type": ["string", "null"]
+          },
+          "state": {
+            "type": "string",
+            "enum": ["pending", "active", "done"]
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "lanes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "role",
+          "model_profile",
+          "goal",
+          "depends_on",
+          "read_scope",
+          "write_scope",
+          "acceptance",
+          "state"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["explorer", "worker", "verifier", "default"]
+          },
+          "model_profile": {
+            "type": "string",
+            "enum": ["deep", "balanced", "fast"]
+          },
+          "goal": {
+            "type": "string"
+          },
+          "depends_on": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "read_scope": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "write_scope": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "acceptance": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "state": {
+            "type": "string",
+            "enum": ["ready", "running", "blocked", "integrated", "done", "held"]
+          },
+          "held_reason": {
+            "type": ["string", "null"],
+            "enum": [
+              null,
+              "safe",
+              "overlap",
+              "blocked",
+              "dependency",
+              "contract",
+              "unclear_scope",
+              "unclear_acceptance",
+              "verification_failed"
+            ]
+          }
+        }
+      }
+    },
+    "frontier": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "integration": {
+      "type": "object",
+      "required": ["owner", "instructions"],
+      "additionalProperties": false,
+      "properties": {
+        "owner": {
+          "type": "string"
+        },
+        "instructions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "promotion_check": {
+      "type": "string",
+      "enum": ["off", "silent", "ask"]
+    },
+    "promotion_candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["role", "reason", "confidence", "requires_user_approval"],
+        "additionalProperties": false,
+        "properties": {
+          "role": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": ["low", "medium", "high"]
+          },
+          "requires_user_approval": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

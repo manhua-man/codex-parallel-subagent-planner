@@ -2,16 +2,13 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-`parallel-subagent-planner` is a Codex Skill that decides whether subagents would materially help, splits accepted implementation work into bounded lanes, holds coupled work, and schedules multi-module projects in dependency-safe waves.
+`parallel-subagent-planner` is a Codex Skill that decides whether subagents would materially help, splits accepted implementation work into bounded lanes, holds coupled work, schedules multi-module projects in dependency-safe waves, outputs a versioned Machine Schema plan, and identifies reusable long-term agent candidates.
 
-## What It Does
+## Three-Layer Product Architecture
 
-- **Task vs Project Mode**: Distinguishes between bounded single-module tasks and multi-module project requests.
-- **Split Gate**: Evaluates whether parallel subagent execution is worthwhile before spawning child lanes.
-- **Safety Invariants**: Enforces strict write-write (`write(A) ∩ write(B) = ∅`) and write-read (`write(A) ∩ read(B) = ∅`) isolation.
-- **Shared Contract Owners**: Ensures shared APIs, schemas, and routes have a single owner lane per wave.
-- **Wave Scheduling**: Computes parallel frontiers for multi-module projects and schedules execution in safe waves.
-- **Bounded Child Prompts**: Generates non-recursive, scope-bounded child prompts with explicit boundaries.
+1. **Parallel Planning Core**: Distinguishes Task vs. Project mode, evaluates the Split Gate, enforces disjoint scopes (`write ∩ write = ∅`, `write ∩ read = ∅`), assigns shared contract owners, and schedules multi-module projects in safe waves.
+2. **Machine Schema Contract**: Machine mode outputs structured JSON adhering to `schema/planner-plan.schema.json` (`schema_version: "1.0"`) so downstream tools and schedulers can consume plans through a stable data contract.
+3. **Long-Term Agent Candidates**: Evaluates recurring subagent roles after integration (`promotion_check: silent` default) and generates persistent `.codex/agents/<name>.toml` custom agent specs upon explicit user approval.
 
 ## Operating Modes
 
@@ -19,6 +16,12 @@
 | --- | --- | --- |
 | Task Mode | Single bounded change or one module | Fast split gate; avoids broad repository scanning |
 | Project Mode | Complete product, multi-module app, or shared contracts | Maps full product surface, assigns contract owners, computes parallel frontier, schedules waves |
+
+## Output Modes
+
+- **Compact** (Default): Human-readable summary (`Why split`, `Launch now`, `Held lanes`, `Integration note`).
+- **Full**: Comprehensive text plan with lane tables, contract owners, and ready child prompts.
+- **Machine**: Pure structured JSON output following `schema/planner-plan.schema.json`.
 
 ## Quick Example
 
@@ -68,7 +71,10 @@ parallel-subagent-planner/
 │  ├─ project-scale-planning.md
 │  ├─ planner-details.md
 │  ├─ prompt-templates.md
+│  ├─ long-term-agents.md
 │  └─ runtime-compatibility.md
+├─ schema/
+│  └─ planner-plan.schema.json
 ├─ README.md
 ├─ README.zh-CN.md
 ├─ CHANGELOG.md
@@ -77,7 +83,7 @@ parallel-subagent-planner/
 
 ## Scope & Limitations
 
-This skill focuses strictly on execution-lane planning and wave scheduling for Codex. It does not define product requirements, approve software architecture, manage OpenSpec artifacts, or route tasks to external coding backends.
+This skill focuses strictly on execution-lane planning, machine plan serialization, and long-term agent role identification for Codex. It does not define product requirements, approve software architecture, manage OpenSpec artifacts, or route tasks to external coding backends.
 
 ## License
 

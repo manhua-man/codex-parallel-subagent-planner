@@ -2,16 +2,13 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-`parallel-subagent-planner` 是一个面向 Codex 的并行任务规划 Skill。它判断任务是否值得拆分，将已确认的实现目标拆成边界明确的 Lane，阻止存在依赖或写域冲突的并行执行，并为多模块项目安排安全的 Wave。
+`parallel-subagent-planner` 是一个面向 Codex 的并行任务规划 Skill。它判断任务是否值得拆分，将已确认的实现目标拆成边界明确的 Lane，阻止存在依赖或写域冲突的并行执行，为多模块项目安排安全的 Wave，输出带版本的 Machine Schema 结构化计划，并识别可复用的长期 Agent 角色。
 
-## 核心功能
+## 三层产品架构
 
-- **Task 与 Project 模式划分**：区分单模块限定修改与多模块项目需求。
-- **Split Gate 拆分门控**：在创建子 Agent 前评估并行拆分是否具备实质收益。
-- **安全隔离约束**：硬性隔离写写冲突 (`write(A) ∩ write(B) = ∅`) 与写读数据竞争 (`write(A) ∩ read(B) = ∅`)。
-- **共享契约 Owner 机制**：确保共享 API、Schema、路由入口在每个 Wave 中有且仅有一个修改 Owner。
-- **Wave 阶段调度**：计算多模块项目的 Parallel Frontier，按阶段安全调度。
-- **限定 Child Prompt**：生成非递归、明确读写与操作边界的子任务提示词。
+1. **并行规划核心 (Parallel Planning Core)**：区分 Task 与 Project 模式，评估 Split Gate，硬性隔离写写冲突 (`write ∩ write = ∅`) 与写读数据竞争 (`write ∩ read = ∅`)，分配共享契约 Owner，并按阶段安全调度 Wave。
+2. **机器数据协议 (Machine Schema Contract)**：Machine 模式遵循 `schema/planner-plan.schema.json` (`schema_version: "1.0"`) 输出结构化 JSON，为后续调度器或其他自动化工具提供稳定、带版本的数据契约。
+3. **能力沉淀机制 (Long-Term Agent Candidates)**：任务集成后评估反复出现的 Subagent 角色 (`promotion_check: silent` 默认)，并在用户明确批准后生成持久化的 `.codex/agents/<name>.toml` 自定义 Agent 配置。
 
 ## 运行模式
 
@@ -19,6 +16,12 @@
 | --- | --- | --- |
 | Task 模式 | 单个限定修改、单模块 | 快速判定 Split 信号，避免大范围扫描 |
 | Project 模式 | 完整应用、多模块、共享契约 | 扫描产品表面，分配契约 Owner，计算 Frontier，按 Wave 调度 |
+
+## 输出模式
+
+- **Compact**（默认）：面向人类阅读的摘要（`Why split`、`Launch now`、`Held lanes`、`Integration note`）。
+- **Full**：完整文本计划（包含 Lane 表格、契约 Owner、阶段 Frontier 与 Child Prompts）。
+- **Machine**：遵循 `schema/planner-plan.schema.json` 规范的纯 JSON 输出。
 
 ## 快速示例
 
@@ -68,7 +71,10 @@ parallel-subagent-planner/
 │  ├─ project-scale-planning.md
 │  ├─ planner-details.md
 │  ├─ prompt-templates.md
+│  ├─ long-term-agents.md
 │  └─ runtime-compatibility.md
+├─ schema/
+│  └─ planner-plan.schema.json
 ├─ README.md
 ├─ README.zh-CN.md
 ├─ CHANGELOG.md
@@ -77,7 +83,7 @@ parallel-subagent-planner/
 
 ## 边界与限制
 
-本 Skill 专注于 Codex 的执行 Lane 规划与 Wave 调度。它不用于定义产品需求、批准架构方案、管理 OpenSpec 产物或向外部 Backend 路由任务。
+本 Skill 专注于 Codex 的执行 Lane 规划、机器计划序列化与长期 Agent 角色识别。它不用于定义产品需求、批准架构方案、管理 OpenSpec 产物或向外部 Backend 路由任务。
 
 ## 开源协议
 

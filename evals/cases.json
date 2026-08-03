@@ -1,0 +1,148 @@
+[
+  {
+    "id": "01-not-split",
+    "title": "Not Split for Tiny Single Edit",
+    "input": "Rename one README heading and keep everything else unchanged.",
+    "assert": {
+      "mode": "task",
+      "launched_write_lane_count": 0,
+      "launched_explorer_lane_count": 0,
+      "must_contain_held_reason": [],
+      "forbidden": ["parallel_write_overlap"],
+      "frontier": []
+    }
+  },
+  {
+    "id": "02-explorer-first-worker-held",
+    "title": "Explorer First, Worker Held",
+    "input": "Split this task if useful: first verify current export behavior, then unify export flow behavior. Files: src/runtime/session-view-service.ts, src/extension.ts",
+    "assert": {
+      "mode": "task",
+      "launched_write_lane_count": 0,
+      "launched_explorer_lane_count": 1,
+      "must_contain_held_reason": ["blocked"],
+      "forbidden": ["parallel_write_overlap", "unsafe_launch"],
+      "frontier": ["export-behavior-audit"]
+    }
+  },
+  {
+    "id": "03-two-write-workers",
+    "title": "Two Independent Write Workers",
+    "input": "Split if useful: update CLI help text in src/cli/help.ts, and update docs/usage.md to match new help text. Run lane-local checks only.",
+    "assert": {
+      "mode": "task",
+      "launched_write_lane_count": 2,
+      "launched_explorer_lane_count": 0,
+      "must_contain_held_reason": ["safe"],
+      "forbidden": ["parallel_write_overlap"],
+      "frontier": ["cli-help-worker", "docs-usage-worker"]
+    }
+  },
+  {
+    "id": "04-overlapping-write-scope",
+    "title": "Overlapping Write Scope Prevention",
+    "input": "Split this: worker A should refactor src/runtime/session.ts; worker B should add tests but may also adjust src/runtime/session.ts.",
+    "assert": {
+      "mode": "task",
+      "launched_write_lane_count": 0,
+      "launched_explorer_lane_count": 1,
+      "must_contain_held_reason": ["overlap"],
+      "forbidden": ["parallel_write_overlap", "unsafe_launch"],
+      "frontier": ["runtime-explorer"]
+    }
+  },
+  {
+    "id": "05-long-term-agent-candidate",
+    "title": "Long-Term Agent Candidate Check",
+    "input": "After the run, the verification lane repeatedly caught benchmark fixture drift and produced stable evidence. Should anything be kept?",
+    "assert": {
+      "mode": "task",
+      "promotion_candidate": "benchmark_fixture_steward",
+      "promotion_format": ".toml",
+      "requires_explicit_user_approval": true,
+      "forbidden": ["unauthorized_file_creation"]
+    }
+  },
+  {
+    "id": "06-complete-multi-module-app",
+    "title": "Complete Multi-Module Application",
+    "input": "Build the complete application. It needs authentication, workspace CRUD, media uploads, a dashboard, and end-to-end tests. Decide what can run in parallel.",
+    "assert": {
+      "mode": "project",
+      "launched_write_lane_count": 1,
+      "launched_explorer_lane_count": 0,
+      "must_contain_held_reason": ["dependency"],
+      "forbidden": ["single_module_reduction", "unsafe_launch"],
+      "frontier": ["shared-contracts-owner"]
+    }
+  },
+  {
+    "id": "07-project-scope-requires-discovery",
+    "title": "Project Scope Requires Discovery",
+    "input": "Finish this existing SaaS product. There are many packages, but no current architecture document. Parallelize whatever is safe.",
+    "assert": {
+      "mode": "project",
+      "launched_write_lane_count": 0,
+      "launched_explorer_lane_count": 1,
+      "must_contain_held_reason": ["unclear_scope"],
+      "forbidden": ["premature_worker_launch"],
+      "frontier": ["project-surface-explorer"]
+    }
+  },
+  {
+    "id": "08-shared-router-and-schema",
+    "title": "Shared Router and Schema Contract Wave",
+    "input": "Implement account, billing, projects, and admin modules. Every module needs to add routes and database tables. Use as many agents as useful.",
+    "assert": {
+      "mode": "project",
+      "launched_write_lane_count": 1,
+      "launched_explorer_lane_count": 0,
+      "must_contain_held_reason": ["contract"],
+      "forbidden": ["parallel_shared_contract_edits"],
+      "frontier": ["schema-router-contract-owner"]
+    }
+  },
+  {
+    "id": "09-recompute-frontier",
+    "title": "Recompute Frontier After Integration",
+    "input": "The contract wave is complete. Auth passed, media failed its local tests, and workspace discovered a new storage dependency. Continue the project plan.",
+    "assert": {
+      "mode": "project",
+      "must_contain_held_reason": ["dependency", "local_test_failure"],
+      "forbidden": ["reuse_stale_wave_plan"],
+      "frontier": ["recomputed-safe-frontier"]
+    }
+  },
+  {
+    "id": "10-plan-review-composition",
+    "title": "Plan Review Skill Composition Boundary",
+    "input": "Run autoplan on this draft architecture, challenge the product scope, and then parallelize whatever implementation survives review.",
+    "assert": {
+      "mode": "task",
+      "launched_write_lane_count": 0,
+      "hand_off_target": "autoplan",
+      "forbidden": ["concurrent_unapproved_dispatch"]
+    }
+  },
+  {
+    "id": "11-openspec-tasks-authoritative",
+    "title": "OpenSpec Task Authority",
+    "input": "This repository has an active OpenSpec change with proposal, design, and tasks. Use subagents to continue implementation.",
+    "assert": {
+      "mode": "task",
+      "preserves_openspec_state": true,
+      "forbidden": ["competing_task_list_generation"]
+    }
+  },
+  {
+    "id": "12-desktop-launch-adapter",
+    "title": "Resolve Desktop Launch Adapter",
+    "input": "The generic spawn_agent tool has no model or effort fields, but Codex Desktop also exposes create_thread with model and thinking. Launch approved lane.",
+    "assert": {
+      "mode": "task",
+      "uses_capability": "isolated_context",
+      "adapter_selected": "create_thread",
+      "forbidden": ["unnecessary_lane_holding"]
+    }
+  }
+]

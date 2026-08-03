@@ -89,11 +89,16 @@ Boundary:
 
 Role-specific prompt templates are provided in [references/prompt-templates.md](references/prompt-templates.md).
 
-## 6. Integrate And Replan
+## 6. Integrate And Replan (State-Aware Incremental Replanning)
+
+Read [references/planning-state.md](references/planning-state.md) for state-aware incremental replanning guidelines.
 
 In task mode: wait for child lanes to complete, integrate changes, and run main-thread verification.
 
-In project mode: after each wave completes, verify shared contracts and outputs, update module states, recompute the next parallel frontier, and launch the next wave.
+In project mode: after each wave completes or when status updates arrive:
+- Freeze completed lanes (`done` or `integrated`).
+- Do not re-plan the entire project from scratch.
+- Recalculate ONLY affected downstream lanes and unblocked dependencies to form the next parallel frontier.
 
 ## 7. Output Modes
 
@@ -106,14 +111,14 @@ Return Compact by default for human review:
 
 ### Full
 Return Full when requested or during complex diagnostic reviews:
-1. Scale decision, surface map, and slicing strategy (vertical vs horizontal).
+1. Scale decision, surface map, planning state, and slicing strategy (vertical vs horizontal).
 2. Complete lane table with dependencies & contract owners.
 3. Current wave & ready child prompts.
 4. Integration and replan instructions.
 
 ### Machine
 Return Machine JSON only when explicitly requested, when another program will consume the result, or when downstream schedulers require a versioned contract:
-- Follow `schema/planner-plan.schema.json` with `"schema_version": "1.1"`.
+- Follow `schema/planner-plan.schema.json` with `"schema_version": "1.2"`.
 - Read [references/machine-schema.md](references/machine-schema.md) for protocol details and boundaries.
 - Do not include Markdown fences or conversational text.
 

@@ -14,7 +14,7 @@
   "properties": {
     "schema_version": {
       "type": "string",
-      "enum": ["1.0", "1.1"]
+      "enum": ["1.0", "1.1", "1.2"]
     },
     "mode": {
       "type": "string",
@@ -34,6 +34,28 @@
         "split_strategy": {
           "type": "string",
           "enum": ["vertical", "horizontal", "hybrid", "none"]
+        }
+      }
+    },
+    "planning_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "completed_lanes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "blocked_lanes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "changed_contracts": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "frontier": {
+          "type": "array",
+          "items": { "type": "string" }
         }
       }
     },

@@ -1,7 +1,7 @@
 /**
  * Zero-Dependency Behavioral Evals Runner for Parallel Subagent Planner (v0.2.0)
  * Evaluates real recorded planner output objects in `evals/cases.json` against full assertions.
- * Includes explicit Forbidden Assertion Registry with ZERO silent skipping.
+ * Includes explicit Forbidden Assertion Registry with ZERO silent skipping and Set-based case-unique unsafe launch rate.
  * Target Assertion: Unsafe Launch Rate = 0
  */
 
@@ -104,7 +104,7 @@ function runEvals() {
   const cases = JSON.parse(fs.readFileSync(casesPath, 'utf8'));
   let totalCases = cases.length;
   let passedCases = 0;
-  let totalUnsafeLaunches = 0;
+  const unsafeCaseIds = new Set();
 
   console.log(`\n--- Running ${totalCases} Recorded Golden Fixture Contract Evals ---\n`);
 
@@ -233,7 +233,9 @@ function runEvals() {
       failures.push(`Expected metadata.uses_capability '${testCase.assert.uses_capability}', got '${metadata.uses_capability}'`);
     }
 
-    if (caseUnsafeLaunches > 0) totalUnsafeLaunches += caseUnsafeLaunches;
+    if (caseUnsafeLaunches > 0) {
+      unsafeCaseIds.add(testCase.id);
+    }
 
     if (casePassed) {
       passedCases++;
@@ -244,15 +246,15 @@ function runEvals() {
     }
   });
 
-  const unsafeLaunchRate = (totalUnsafeLaunches / totalCases).toFixed(4);
+  const unsafeLaunchRate = (unsafeCaseIds.size / totalCases).toFixed(4);
 
   console.log(`\n----------------------------------------`);
   console.log(`Results: ${passedCases}/${totalCases} cases passed`);
-  console.log(`Unsafe Launch Count: ${totalUnsafeLaunches}`);
+  console.log(`Unsafe Case Count: ${unsafeCaseIds.size}`);
   console.log(`Unsafe Launch Rate: ${unsafeLaunchRate} (Target: 0.0000)`);
   console.log(`----------------------------------------\n`);
 
-  if (passedCases === totalCases && totalUnsafeLaunches === 0) {
+  if (passedCases === totalCases && unsafeCaseIds.size === 0) {
     console.log(`✓ All golden fixture contract evals passed with Unsafe Launch Rate = 0!`);
     process.exit(0);
   } else {

@@ -4,12 +4,13 @@
   "description": "Cost-aware execution parallelism planner skill for Codex (v0.2.0)",
   "main": ".tools/validate-plan.js",
   "scripts": {
-    "test": "node .tools/check-drift.js && node test/validator.test.js && node .tools/validate-plan.js examples/plans/task-mode-plan.json && node .tools/validate-plan.js examples/plans/project-mode-plan.json && node .tools/run-evals.js",
+    "test": "node .tools/check-schema-parity.js && node .tools/check-drift.js && node test/validator.test.js && node .tools/validate-plan.js examples/plans/task-mode-plan.json && node .tools/validate-plan.js examples/plans/project-mode-plan.json && node .tools/run-evals.js",
     "test:drift": "node .tools/check-drift.js",
     "test:validator": "node test/validator.test.js",
     "test:evals": "node .tools/run-evals.js",
-    "eval:planner": "node .tools/run-evals.js",
-    "schema:check": "node .tools/check-drift.js",
+    "eval:golden": "node .tools/run-evals.js",
+    "schema:generate": "node .tools/generate-schema-validator.js",
+    "schema:check": "node .tools/check-schema-parity.js",
     "validate:plan": "node .tools/validate-plan.js",
     "package:plugin": "node .tools/package-plugin.js",
     "install:skill": "node .tools/install-skill.js"
@@ -25,5 +26,8 @@
   "author": "manhua-man",
   "license": "MIT",
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^2.1.1"
+  }
 }

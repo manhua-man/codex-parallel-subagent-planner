@@ -1,6 +1,6 @@
 /**
  * Validator Unit Test Suite for Parallel Subagent Planner (v0.2.0)
- * Tests positive and negative validation cases for JSON Schema structural validation, canonical scope syntax, and business invariants.
+ * Tests positive and negative validation cases for JSON Schema structural validation, canonical scope syntax, business invariants, and assertion handlers.
  */
 
 const assert = require('assert');
@@ -10,7 +10,7 @@ const { validatePlan, isPathIntersection, isValidScopeSyntax } = require('../.to
 const { forbiddenHandlers } = require('../.tools/run-evals');
 
 function runValidatorTests() {
-  console.log('\n--- Running Validator Unit Tests ---\n');
+  console.log('\n--- Running Validator & Handler Unit Tests ---\n');
 
   // Test 1: Scope Syntax & Alias Rejection Tests
   assert.strictEqual(isValidScopeSyntax('src/a.ts'), true, 'src/a.ts should be valid');
@@ -174,7 +174,81 @@ function runValidatorTests() {
   assert.ok(res6.errors.some(e => e.includes('race condition')), 'Should mention write-read race condition');
   console.log('✓ Write-Read race condition test passed');
 
-  // Test 8: Evals Forbidden Assertion Registry Completeness
+  // Test 8: Table-Driven Positive & Negative Unit Tests for Assertion Handlers
+  const handlerTests = [
+    {
+      flag: 'parallel_write_overlap',
+      safeFrontier: [{ id: 'w1', write_scope: ['src/a.ts'] }, { id: 'w2', write_scope: ['src/b.ts'] }],
+      violatingFrontier: [{ id: 'w1', write_scope: ['src/a.ts'] }, { id: 'w2', write_scope: ['src/a.ts'] }]
+    },
+    {
+      flag: 'unsafe_launch',
+      safeArgs: [{}, [], 0],
+      violatingArgs: [{}, [], 1]
+    },
+    {
+      flag: 'single_module_reduction',
+      safePlan: { mode: 'project' },
+      violatingPlan: { mode: 'task' }
+    },
+    {
+      flag: 'unauthorized_file_creation',
+      safeFrontier: [{ agent_type: 'explorer', write_scope: [] }],
+      violatingFrontier: [{ agent_type: 'worker', write_scope: ['src/a.ts'] }]
+    },
+    {
+      flag: 'premature_worker_launch',
+      safeFrontier: [{ agent_type: 'explorer', write_scope: [] }],
+      violatingFrontier: [{ agent_type: 'worker', write_scope: ['src/a.ts'] }]
+    },
+    {
+      flag: 'parallel_shared_contract_edits',
+      safeFrontier: [{ id: 'lane-1', write_scope: ['src/a.ts'] }],
+      violatingFrontier: [{ id: 'contract-1', write_scope: ['src/router/a.ts'] }, { id: 'contract-2', write_scope: ['src/db/b.ts'] }]
+    },
+    {
+      flag: 'reuse_stale_wave_plan',
+      safeFrontier: [{ state: 'ready' }],
+      violatingFrontier: [{ state: 'blocked' }]
+    },
+    {
+      flag: 'concurrent_unapproved_dispatch',
+      safeFrontier: [{ agent_type: 'explorer' }],
+      violatingFrontier: [{ agent_type: 'worker' }]
+    },
+    {
+      flag: 'competing_task_list_generation',
+      safePlan: { metadata: { preserves_openspec_state: true } },
+      violatingPlan: { metadata: { preserves_openspec_state: false } }
+    },
+    {
+      flag: 'unnecessary_lane_holding',
+      safePlan: { lanes: [{ state: 'held', held_reason: 'blocked' }] },
+      violatingPlan: { lanes: [{ state: 'held', held_reason: 'safe' }] }
+    }
+  ];
+
+  handlerTests.forEach(test => {
+    const handler = forbiddenHandlers[test.flag];
+    assert.ok(handler, `Handler '${test.flag}' must exist`);
+
+    // Safe invocation -> must return null
+    let safeRes;
+    if (test.safePlan) safeRes = handler(test.safePlan, test.safePlan.lanes || []);
+    else if (test.safeArgs) safeRes = handler(...test.safeArgs);
+    else safeRes = handler({}, test.safeFrontier);
+    assert.strictEqual(safeRes, null, `Handler '${test.flag}' safe fixture should return null`);
+
+    // Violating invocation -> must return non-null string
+    let violRes;
+    if (test.violatingPlan) violRes = handler(test.violatingPlan, test.violatingPlan.lanes || []);
+    else if (test.violatingArgs) violRes = handler(...test.violatingArgs);
+    else violRes = handler({}, test.violatingFrontier);
+    assert.ok(typeof violRes === 'string' && violRes.length > 0, `Handler '${test.flag}' violating fixture should return error string`);
+  });
+  console.log('✓ Table-driven positive & negative assertion handler unit tests passed');
+
+  // Test 9: Evals Forbidden Assertion Registry Completeness
   const casesPath = path.resolve(__dirname, '../evals/cases.json');
   if (fs.existsSync(casesPath)) {
     const cases = JSON.parse(fs.readFileSync(casesPath, 'utf8'));
@@ -187,7 +261,7 @@ function runValidatorTests() {
     console.log('✓ Forbidden Assertion Registry Completeness test passed');
   }
 
-  console.log('\n✓ All Validator Unit Tests Passed Successfully!\n');
+  console.log('\n✓ All Validator & Handler Unit Tests Passed Successfully!\n');
 }
 
 if (require.main === module) {

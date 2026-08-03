@@ -2,13 +2,13 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-`parallel-subagent-planner` is a **Planner Contract (v0.2.0)** execution-parallelism skill for Codex. It chooses between a lightweight task split and project-scale module planning, validates structured plans against compiled JSON schemas and 9 safety invariants, and generates minimal child prompts.
+`parallel-subagent-planner` is a **Planner Contract (v0.2.0)** execution-parallelism skill for Codex. It chooses between a lightweight task split and project-scale module planning, validates structured plans against compiled standalone JSON schemas and 9 safety invariants, and generates minimal child prompts.
 
 ## Key Capabilities (v0.2.0)
 
-- **Planner Contract & Compiled Standalone Schema**: Generates structured plan JSON conforming to `schema/planner-plan.schema.json`, validated at 100% schema parity via standalone code validator.
+- **Planner Contract & Standalone Compiled Schema**: Generates structured plan JSON conforming to `schema/planner-plan.schema.json`, validated at 100% byte-for-byte schema compilation parity (`npm run schema:check`).
 - **Deterministic Invariant Validator**: Enforces 9 safety invariants (disjoint write scopes, write-read race condition prevention, satisfied dependencies, acyclic graph, contract single owner, non-empty acceptance, read-only enforcement, concurrency budget, state/held consistency).
-- **Executable Behavioral Evals**: Automated test suite (`evals/cases.json`) with an **`Unsafe Launch Rate = 0`** target assertion.
+- **Recorded Golden Contract Fixtures (`npm run eval:golden`)**: Recorded test suite (`evals/cases.json`) with explicit assertion handler registry and an **`Unsafe Launch Rate = 0`** target assertion.
 - **Model Profiles & Compatibility Layer**: Decouples model names via semantic profiles (`deep | balanced | fast`) mapped through `references/runtime-compatibility.md`.
   - `deep` (`gpt-5.6-sol`): Flagship model for ambiguous root cause, security audits, complex contracts, high-risk integration.
   - `balanced` (`gpt-5.6-terra`): General-purpose model for routine implementation, bounded refactoring, standard development.
@@ -118,6 +118,8 @@ parallel-subagent-planner/
 │  └─ validator.test.js
 ├─ .tools/
 │  ├─ validate-plan.js
+│  ├─ generate-schema-validator.js
+│  ├─ check-schema-parity.js
 │  ├─ schema-validator.js
 │  ├─ run-evals.js
 │  ├─ check-drift.js
@@ -143,13 +145,13 @@ parallel-subagent-planner/
 
 ## Automated Verification
 
-Run the full zero-dependency automated test suite:
+Run the full automated test suite:
 
 ```bash
 npm test
 ```
 
-Includes static integrity checking, standalone compiled schema validation, validator unit tests, and real behavioral evals.
+Includes byte-for-byte schema parity verification, static integrity audit, validator and assertion handler unit tests, and recorded golden contract fixture evals.
 
 ## License
 

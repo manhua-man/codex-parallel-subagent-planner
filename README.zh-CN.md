@@ -2,13 +2,13 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-`parallel-subagent-planner` 是面向 Codex 的 **Planner Contract (v0.2.0)** 执行并行规划技能。它支持轻量 Task 模式与 Project 模式，提供基于独立编译 JSON Schema 的结构化规划契约、确定性验证器、可执行 Evals 回归测试与模型档位适配层。
+`parallel-subagent-planner` 是面向 Codex 的 **Planner Contract (v0.2.0)** 执行并行规划技能。它支持轻量 Task 模式与 Project 模式，提供基于独立编译 JSON Schema 的结构化规划契约、确定性验证器、Recorded Golden Contract Fixtures 回归测试与模型档位适配层。
 
 ## 核心特性 (v0.2.0)
 
-- **Planner Contract 结构化输出**：支持输出符合 `schema/planner-plan.schema.json` 规范的 JSON/YAML 计划，并由 Ajv 独立编译的 JavaScript 验证器实现 100% Schema 强类型校验。
+- **Planner Contract 结构化输出**：支持输出符合 `schema/planner-plan.schema.json` 规范的 JSON/YAML 计划，由 Ajv 编译校验器实现 100% 字节级 Schema 编译一致性校验 (`npm run schema:check`)。
 - **确定性安全验证器**：硬性检查 9 大安全约束（写写与写读重叠隔离、依赖满足性、无环依赖、共享契约唯一 Owner、非空验收条件、只读域保护、并发预算约束、State/Held 状态一致性）。
-- **可执行 Evals 回归测试**：自动化测试套件 (`evals/cases.json`)，以 **`Unsafe Launch Rate = 0`** 为核心质量指标。
+- **Recorded Golden Contract Fixtures (`npm run eval:golden`)**：静态契约测试套件 (`evals/cases.json`)，带有显式断言注册表，以 **`Unsafe Launch Rate = 0`** 为核心质量指标。
 - **模型档位与适配层**：通过语义化模型档位 (`deep | balanced | fast`) 解耦具体模型名，由 `references/runtime-compatibility.md` 统一映射：
   - `deep` (`gpt-5.6-sol`)：旗舰模型，用于模糊根因、安全审计、复杂契约与高风险集成。
   - `balanced` (`gpt-5.6-terra`)：通用模型，用于常规模块开发、限定重构与标准开发。
@@ -50,13 +50,13 @@ npm run package:plugin
 
 ## 自动化测试
 
-运行完整零依赖自动化验证套件：
+运行完整自动化验证套件：
 
 ```bash
 npm test
 ```
 
-包含静态 Integrity 检查、独立编译 Schema 校验、Validator 单元测试与 Evals 行为测试。
+包含字节级 Schema Parity 校验、静态 Integrity 检查、Validator & Assertion Handler 单元测试与 Recorded Golden Fixtures 契约测试。
 
 ## 开源协议
 

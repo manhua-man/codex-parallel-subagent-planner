@@ -1,80 +1,53 @@
-# Maintenance
+# Maintenance Guide
 
-Use this reference when updating the skill, prompt assets, fixtures, docs, or
-benchmark notes.
+Use this reference when updating the skill, prompt assets, fixtures, schema, evals, docs, or compatibility rules.
 
-## Source Of Truth
+## Source Of Truth & Canonical Paths
 
-The canonical source is:
+The canonical repository is:
 
 ```text
 https://github.com/manhua-man/codex-parallel-subagent-planner
 ```
 
-The local installed skill lives at:
-
-```text
-C:\Users\ManHua\.codex\skills\parallel-subagent-planner
-```
-
-After changing the repository, sync the installed skill directory from the
-canonical repository so Codex uses the same `SKILL.md` and references that were
-committed.
+Installation paths:
+- Personal skill: `$HOME/.agents/skills/parallel-subagent-planner`
+- Project skill: `<repo>/.agents/skills/parallel-subagent-planner`
+- Plugin package: Plugin distribution bundle
 
 ## Content Ownership
 
-Keep one normative owner for each rule family:
-
-| File | Ownership |
+| File / Path | Ownership |
 | --- | --- |
 | `SKILL.md` | Normative scale gate, composition boundary, launch protocol, and hold rules |
 | `references/project-scale-planning.md` | Normative project-mode module graph, contracts, frontier, waves, and replanning |
-| `references/planner-details.md` | Normative lane fields, cost, model, and hold mechanics |
+| `references/planner-details.md` | Normative lane fields, budget scoring, model profiles, and hold mechanics |
+| `references/runtime-compatibility.md` | Host capability mappings, model profile translations, and adapter rules |
 | `references/prompt-templates.md` | Prompt wording only; do not introduce new planning rules |
-| `examples/fixtures.md` | Behavioral regression examples; do not become a second specification |
+| `schema/planner-plan.schema.json` | Normative structured plan output schema |
+| `evals/cases.json` | Executable behavioral test cases converted from fixtures |
 | `docs/request-flow*.md` | Explanatory flow mirrors; do not introduce policy absent from normative files |
-| `README*.md` | User-facing summary and examples; link to normative sources for detail |
-| `opsx-parallel.md` | Thin invocation wrapper only |
+| `README*.md` | User-facing summary and examples |
+| `opsx-parallel.md` | Thin invocation wrapper |
 
-When two files disagree, fix the normative owner first, then update mirrors. Do not resolve drift by copying the same full rule into every file.
+## Automated Maintenance Checklist
 
-## Update Checklist
+Before committing or releasing updates, run the automated validation suite:
 
-1. Keep `SKILL.md` concise. Move detailed criteria, examples, and maintenance
-   notes into `references/`, `docs/`, or `examples/`.
-2. Keep `opsx-parallel.md` as a thin command wrapper. Do not duplicate the full
-   launch protocol there; `SKILL.md` is the source of truth.
-3. Update `agents/openai.yaml` if the default behavior or user-facing summary
-   changes materially.
-4. Update `README.md` and `README.zh-CN.md` when repository layout or user-facing
-   scope changes.
-5. Add or adjust examples in `examples/fixtures.md` when the intended launch
-   behavior changes.
-6. Update `docs/request-flow.md` first when request flow changes, then mirror
-   the same semantic change into `docs/request-flow.zh-CN.md`.
-7. Audit trigger overlap with product/plan review, OpenSpec, and backend-router skills whenever the description or project mode changes.
-8. Search for conflicting copies of changed rules across README, docs, references, fixtures, and wrappers.
-9. Run `git diff --check`.
-10. Sync the local installed skill directory.
-11. Commit and push the canonical repository.
-
-## Benchmark Notes
-
-Benchmark snapshots and their recording rules live only in
-`references/benchmarks.md`. Read that file before adding or interpreting a
-snapshot; do not copy its metric contract into maintenance docs.
-
-## Drift Check
-
-Before shipping a skill update, compare canonical files against the installed
-skill:
-
-```powershell
-git -C C:\Users\ManHua\codex-parallel-subagent-planner status --short --branch
-rg --files C:\Users\ManHua\codex-parallel-subagent-planner
-rg --files C:\Users\ManHua\.codex\skills\parallel-subagent-planner
+```bash
+npm run test:drift      # Validate YAML/TOML syntax, link integrity, language parity
+npm run validate:plan   # Validate example plans against JSON schema & 8 invariants
+npm run test:evals      # Execute behavioral evals (zero unsafe launches assert)
+npm run package:plugin  # Verify plugin packaging build
+npm test                # Run full automated verification suite
 ```
 
-The installed folder may omit repository-only docs such as README files, but it
-must include the same `SKILL.md`, `agents/`, `references/`, `docs/`, `examples/`,
-and prompt assets that Codex may need at runtime or during maintenance.
+## Local Sync & Drift Verification
+
+Sync canonical workspace files to local agent skill folder:
+
+```powershell
+# Sync repository skill files to local agents directory
+git status --short
+npm test
+```

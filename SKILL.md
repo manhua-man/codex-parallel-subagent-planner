@@ -1,6 +1,6 @@
 ---
 name: parallel-subagent-planner
-description: Cost-aware Codex execution-parallelism planner for both bounded tasks and multi-module software work. Use to decide whether to launch safe subagents, discover execution modules and dependencies when an approved goal spans a complete app or several capabilities, schedule independent work in waves, and send minimal non-recursive worker prompts. Do not use it as a substitute for product requirements, architecture or plan review, OpenSpec artifact management, or external coding-agent backend routing.
+description: Cost-aware Codex execution-parallelism planner for both bounded tasks and multi-module software work. Use to decide whether to launch safe subagents, discover execution modules and dependencies when an approved goal spans a complete app or several capabilities, schedule independent work in waves, validate structured plan safety against schemas, and send minimal child prompts. Do not use it as a substitute for product requirements, architecture or plan review, OpenSpec artifact management, or external coding-agent backend routing.
 ---
 
 # Parallel Subagent Planner
@@ -33,26 +33,18 @@ Own execution-lane discovery, dependency scheduling, launch/hold decisions, and 
 
 Do not run two execution orchestrators over the same write scopes at the same time. When another workflow already owns dispatch, provide a lane/dependency recommendation or wait for its handoff.
 
-## Mandatory Long-Term Agent Check
+## Long-Term Agent Candidate Policy
 
-After every parallel run, check whether any completed subagent role is worth
-turning into a long-term agent. If a reusable candidate exists, proactively ask
-the user whether to promote it. Do not wait for the user to ask first.
+The planner evaluates whether completed worker or verifier roles qualify as long-term agent candidates.
 
-Promotion is advisory until the user explicitly approves file creation. When
-asking, report only:
-- Whether the role is worth promoting
-- Why it is worth promoting
-- Where the agent spec should be stored
+Promotion check modes:
+- `off`: do not evaluate long-term candidates
+- `silent` (default): evaluate internally; report candidates only when requested or in `Full`/`Explain` mode
+- `ask`: prompt the user when a high-confidence candidate exists
 
-Recommend promotion only for recurring, bounded steward/verifier roles with
-objective checks. Do not promote temporary task workers, broad coordinators, or
-roles that depend on one-off session context.
+Recommended promotion applies only to recurring, bounded steward/verifier roles with objective checks. Do not promote temporary task workers or broad coordinators.
 
-Do not create or write `.codex/agents/` or `agents/` files until the user
-explicitly approves that specific promotion. If a reusable candidate is unclear
-or the user asks for criteria/spec details, read
-[references/long-term-agents.md](references/long-term-agents.md).
+When approved by the user, persistent agent definitions use Codex `.toml` format (`.codex/agents/<agent>.toml` or `$HOME/.agents/<agent>.toml`). Never create or write agent `.toml` files without explicit user approval. Details live in [references/long-term-agents.md](references/long-term-agents.md).
 
 ## Fast Gate
 
@@ -65,23 +57,30 @@ Consider subagents when any one is true:
 
 No strong signal in task mode means `Not split` and main-thread work. In project mode, evaluate independent modules from the current parallel frontier rather than only the module currently being discussed. Considering subagents does not require launching them: launch only lanes with a clear goal, bounded read/write scope, a useful deliverable, and an acceptance check. Hold or merge lanes that are tiny, coupled, unclear, or likely to duplicate broad verification.
 
-## Launch Protocol
+## Launch & Capability Protocol
 
-When launching, use the minimum viable lane count. Multiple write-enabled workers are allowed when the workstreams are genuinely independent and the expected benefit should justify child context cost. More than 3 lanes is allowed when the lanes have clearly independent write scopes, lane-local checks, and a concrete expected time or cost benefit. In project mode, launch only the current frontier; keep later waves held until their dependencies and contracts pass.
+When launching, use the minimum viable lane count. Multiple write-enabled workers are allowed when workstreams are genuinely independent and the expected benefit justifies context cost. In project mode, launch only the current frontier; keep later waves held until dependencies and contracts pass.
 
-Before declaring model routing unavailable, inspect every launch adapter exposed by the current Codex host. Do not infer host capability from one generic `spawn_agent` schema. In Codex Desktop, prefer `create_thread` for a newly authorized project-local or background lane when it exposes explicit `model` and `thinking`; map Planner `reasoning_effort` to the host's `thinking` field. A newly created thread receives the compact Context Brief instead of parent history, satisfying the no-fork requirement. Use `send_message_to_thread` with explicit `model` and `thinking` only to continue an existing lane. A generic collaboration `spawn_agent` that cannot pass model and effort must not be used for Planner launches, but its limitation does not make the Desktop thread adapter unavailable. Hold a lane only after no authorized launch adapter on the host can pass both fields explicitly.
+The planner expresses requirements through generic host capabilities:
 
-One broad final test suite, such as `npm test`, is a merge risk. It does not forbid two workers, but each worker must have lane-local checks and the main thread must run the broad final suite once.
+```yaml
+required_capabilities:
+  explicit_model: preferred
+  explicit_reasoning: preferred
+  isolated_context: required
+  read_only_agent: supported
+```
 
-Every child launch must use `fork_context=false`, a compact Context Brief, an explicit 5.6 model, and an explicit `reasoning_effort`. The only allowed child models are `gpt-5.6-terra`, `gpt-5.6-luna`, and `gpt-5.6-sol`. Do not inherit the parent model, omit the model, or fall back to another model family. Choose the model and effort from the lane's task shape, ambiguity, blast radius, and acceptance strength; Sol is not an unconditional default. If the runtime cannot pass an allowed model and effort explicitly, hold the lane or execute it in the main thread.
+Map these capabilities using [references/runtime-compatibility.md](references/runtime-compatibility.md). Every launched child uses isolated context (`isolated_context: required`), a compact Context Brief, and explicit semantic model and reasoning profiles.
 
-Use this routing baseline, then adjust effort independently:
+Child lane profiles:
+- `model_profile`: `deep` | `balanced` | `fast` (with optional `model_override`)
+- `reasoning_profile`: `auto` | `low` | `medium` | `high`
 
-- `gpt-5.6-terra`: cross-module architecture, shared contracts, risky integration, security-sensitive investigation, or ambiguous root-cause work.
-- `gpt-5.6-luna`: read-only discovery, evidence synthesis, independent verification, test design, and bounded analysis with clear outputs.
-- `gpt-5.6-sol`: tightly scoped implementation or mechanical transformation with disjoint writes and concrete lane-local tests.
-
-Use `low` for deterministic scans and mechanical edits, `medium` for bounded implementation or verification, and `high` for ambiguous or cross-boundary work. Reserve stronger settings for exceptional high-consequence work with weak signals. Respect the Desktop adapter's model-specific thinking bounds: Terra supports `low` through `ultra`, Luna supports `low` through `max` and must never receive `ultra`, and Sol supports `low` through `ultra`. Model and effort are separate decisions; do not bind one effort permanently to a model or exceed its supported bound.
+Default profile mapping baseline:
+- `fast`: read-only discovery, evidence synthesis, independent verification, test design, bounded analysis (`gpt-5.6-luna`).
+- `balanced`: cross-module architecture, shared contracts, risky integration, security investigation, ambiguous root cause (`gpt-5.6-terra`).
+- `deep`: tightly scoped implementation or mechanical transformation with disjoint writes and concrete lane-local tests (`gpt-5.6-sol`).
 
 Child prompts must be short and non-recursive:
 
@@ -100,13 +99,36 @@ This lane is already scoped. Execute locally in this child thread.
 Do not split, delegate, launch subagents, or run orchestration.
 ```
 
-When the user's task names an absolute work directory, repeat that directory in
-every child prompt. Do not rely on the child thread's default cwd, projectless
-output directory, or inherited context to find files. Prefer absolute Read/Write
-paths when the worker may run outside the target directory.
+When the user's task names an absolute work directory, repeat that directory in every child prompt.
 
-After launching a task-mode batch, the main thread waits once, integrates, and runs final verification. In project mode, the main thread integrates each wave, verifies shared contracts and lane-local outputs, updates module states, and recomputes the next parallel frontier. Run the broad final suite once after the final wave. Do not edit a launched worker's write scope while it is running. If spawn fails because the selected 5.6 model or effort is unavailable, retry once with another allowed Terra/Luna/Sol pairing justified by the same lane; never fall back outside the 5.6 allowlist. Preserve the failure as benchmark evidence.
+After launching a task-mode batch, the main thread waits once, integrates, and runs final verification. In project mode, the main thread integrates each wave, verifies shared contracts and lane-local outputs, updates module states, and recomputes the next parallel frontier.
+
+## Budgeting & Priority Scoring
+
+The planner enforces cost and concurrency budgets:
+
+```yaml
+budget:
+  max_concurrency: 3
+  max_write_lanes: 2
+  cost_profile: cheap | balanced | quality
+  write_policy: single_writer | disjoint_only
+```
+
+When eligible candidate lanes exceed `max_concurrency`, rank lanes by `launch_score`:
+
+```text
+launch_score = critical_path_weight + unblock_value + risk_reduction + wall_clock_saved - integration_cost - context_cost
+```
+
+Record human-explainable `score_reasons` for each launch decision.
+
+## Output Modes
+
+1. **`Compact`** (Default): User-facing summary (`Why parallel`, `Launch status`, `Held lanes`, `Integration note`).
+2. **`Explain`**: Diagnostic output (`Scale decision`, `Candidate lanes`, `Merged/held reasons`, `Write overlap check`, `Dependency check`, `Budget rationale`, `Launch score`).
+3. **`Machine`**: Machine-readable JSON adhering to `schema/planner-plan.schema.json`.
 
 ## Hold Or Escalate
 
-Do not launch a worker when write scopes overlap, work is small, a worker may need to touch another lane's files, it depends on unfinished investigation or a shared contract, acceptance is unclear, or scope cannot be bounded. If deeper lane planning, ready prompts, model/reasoning allocation, or held-lane output is needed, read [references/planner-details.md](references/planner-details.md).
+Do not launch a worker when write scopes overlap, work is small, a worker may need to touch another lane's files, it depends on unfinished investigation or a shared contract, acceptance is unclear, or scope cannot be bounded. Read [references/planner-details.md](references/planner-details.md) for detailed lane mechanics.

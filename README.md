@@ -1,73 +1,63 @@
-# parallel-subagent-planner
+# parallel-subagent-planner (v0.2.0)
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-`parallel-subagent-planner` is a Codex skill that chooses between a lightweight task split and project-scale module planning, then sends minimal non-recursive prompts for lanes that are bounded enough to launch.
+`parallel-subagent-planner` is a **Planner Contract (v0.2.0)** execution-parallelism skill for Codex. It chooses between a lightweight task split and project-scale module planning, validates structured plans against JSON schemas and safety invariants, and generates minimal child prompts.
 
-It focuses on:
+## Key Capabilities (v0.2.0)
 
-- deciding whether a task should be split at all
-- classifying bounded tasks versus complete multi-module software goals
-- discovering module dependencies, shared contracts, and wave-ready frontiers for project-scale work
-- keeping the default decision path small
-- choosing lane ownership and avoiding overlapping write scopes
-- suggesting `agent type`, model, and reasoning effort for each lane
-- considering Codex subagents when a strong split signal appears, then launching only bounded lanes
-- generating ready-to-send prompts for lanes that should be held back
-
-This repository contains the maintained version of the skill and its companion prompt assets.
-
-Execution still depends on Codex's host session, tools, and subagent launcher. This repository provides planning instructions and prompt assets; it does not provide a local runner, Python package, CLI, or session manager.
-
-Current scope:
-
-- built for Codex and Codex subagent workflows
-- model and `agent type` guidance is based on Codex-supported subagents
-- Claude or other agent runtimes are not claimed as supported here unless documented explicitly later
+- **Planner Contract & Output Schema**: Generates structured plan JSON conforming to `schema/planner-plan.schema.json`.
+- **Deterministic Invariant Validator**: Enforces 8 safety invariants (disjoint write scopes, satisfied dependencies, acyclic graph, contract single owner, non-empty acceptance, read-only enforcement, concurrency budget, held reason consistency).
+- **Executable Behavioral Evals**: Automated test suite (`evals/cases.json`) with an `Unsafe Launch Rate = 0` target assertion.
+- **Model Profiles & Compatibility Layer**: Decouples model names via semantic profiles (`deep | balanced | fast`) mapped through `references/runtime-compatibility.md`.
+- **Value & Cost-Aware Scheduling**: Priority scoring (`launch_score` + `score_reasons`) and cost budget enforcement.
+- **Output Modes**: Supports `Compact` (human summary), `Explain` (diagnostic view), and `Machine` (strict JSON output).
+- **TOML Agent Specification**: Persistent agent specs use standard Codex `.toml` templates with a `promotion_check: silent` default policy.
 
 ## Operating Modes
 
 | Mode | Use when | Planner behavior |
 |---|---|---|
 | Task mode | One bounded change, one module, or accepted named lanes | Run the lightweight split gate; avoid broad repository discovery |
-| Project mode | A complete application or accepted goal spans multiple modules and shared contracts | Map the full execution surface, assign contract owners, and schedule dependency-safe waves |
+| Project mode | A complete application or accepted goal spans multiple modules and shared contracts | Map the full execution surface, assign contract owners, score frontier priority, and schedule dependency-safe waves |
 
-Mode selection is automatic after the skill loads. Explicitly invoking `$parallel-subagent-planner` guarantees the skill is loaded; automatic skill activation still depends on Codex matching the request to the skill description.
+## Installation
 
-## Composition Boundaries
+### Personal Skill Installation (Recommended)
 
-This skill schedules implementation work; it does not decide product strategy or replace specialized workflows.
-
-| Workflow | Owns | Relationship to this planner |
-|---|---|---|
-| Product requirements / PRD | What should be built and why | Resolve scope first; then pass the accepted goal to the planner |
-| `autoplan` and plan-review skills | CEO, design, engineering, and DX review | Review first; planner schedules the accepted implementation |
-| OpenSpec | Proposal, design, specs, task selection, and task status | `openspec-apply-change` remains governing; planner only schedules safe lanes within its pending tasks |
-| `coding-agents` | External backend selection and session routing | Keep backend routing separate; combine only when the user explicitly asks |
-
-Never run two execution orchestrators against the same write scopes concurrently.
-
-## Quick Example
-
-Input:
-
-```text
-Split this task if it helps:
-- verify current export behavior first
-- then unify export flow behavior
-- keep behavior unchanged
-- files: src/runtime/session-view-service.ts, src/extension.ts
+```bash
+# Personal install path: $HOME/.agents/skills/parallel-subagent-planner
+mkdir -p "$HOME/.agents/skills/parallel-subagent-planner"
+cp -r . "$HOME/.agents/skills/parallel-subagent-planner"
 ```
 
-Default Compact output:
+### Project Workspace Installation
+
+```bash
+# Project install path: <repo>/.agents/skills/parallel-subagent-planner
+mkdir -p .agents/skills/parallel-subagent-planner
+cp -r . .agents/skills/parallel-subagent-planner
+```
+
+### Plugin Distribution
+
+```bash
+npm run package:plugin
+```
+
+For more details, see [INSTALL.md](INSTALL.md).
+
+## Output Modes Example
+
+### Default `Compact` Output
 
 ```text
 Why parallel
 The task has one read-only behavior check and one implementation lane, but the implementation depends on the check result.
 
 Lane summary
-- Export behavior audit: agent type explorer, model gpt-5.6-luna, reasoning_effort high, read_scope src/runtime/session-view-service.ts + src/extension.ts, write_scope none, deliverable behavior map, can_launch yes, held_reason safe
-- Export flow worker: agent type worker, model gpt-5.6-sol, reasoning_effort medium, read_scope same files plus audit handoff, write_scope src/runtime/session-view-service.ts + src/extension.ts, deliverable behavior-preserving refactor, can_launch no, held_reason blocked
+- Export behavior audit: agent_type explorer, model_profile fast, reasoning_profile high, read_scope src/runtime/session-view-service.ts + src/extension.ts, write_scope none, deliverable behavior map, state ready, held_reason safe
+- Export flow worker: agent_type worker, model_profile deep, reasoning_profile medium, read_scope same files plus audit handoff, write_scope src/runtime/session-view-service.ts + src/extension.ts, deliverable behavior-preserving refactor, state blocked, held_reason dependency
 
 Launch status
 - Launched: Export behavior audit
@@ -77,73 +67,85 @@ Integration note
 Start with the audit, then launch or handle the worker only after the current behavior and acceptance checks are concrete.
 ```
 
-Ready prompts are omitted in Compact output unless a lane is held. Use `Full` when you want every ready-to-send prompt displayed.
+### `Machine` Output (JSON Schema)
 
-Each lane carries explicit `read_scope`, `write_scope`, `can_launch`, and `held_reason` fields so Codex can launch only worthwhile safe lanes and hold risky, dependent, or too-small lanes.
-
-## Benchmark Snapshots
-
-Historical local runs live in `references/benchmarks.md`.
+```json
+{
+  "schema_version": 1,
+  "mode": "task",
+  "budget": {
+    "max_concurrency": 2,
+    "max_write_lanes": 2,
+    "cost_profile": "balanced"
+  },
+  "contracts": [],
+  "lanes": [
+    {
+      "id": "cli-help-worker",
+      "agent_type": "worker",
+      "model_profile": "deep",
+      "reasoning_profile": "medium",
+      "depends_on": [],
+      "read_scope": ["src/cli/help.ts"],
+      "write_scope": ["src/cli/help.ts"],
+      "acceptance": ["npm run test:cli"],
+      "deliverable": "Updated CLI help text",
+      "state": "ready",
+      "held_reason": null,
+      "launch_score": 7.5,
+      "score_reasons": ["Disjoint write scope", "Lane-local checks pass"]
+    }
+  ],
+  "frontier": ["cli-help-worker"]
+}
+```
 
 ## Repository Layout
 
 ```text
 parallel-subagent-planner/
 ├─ SKILL.md
-├─ agents/
-│  └─ openai.yaml
-├─ docs/
-│  ├─ request-flow.md
-│  └─ request-flow.zh-CN.md
+├─ opsx-parallel.md
+├─ schema/
+│  └─ planner-plan.schema.json
+├─ evals/
+│  └─ cases.json
 ├─ examples/
-│  └─ fixtures.md
+│  ├─ fixtures.md
+│  └─ plans/
+├─ scripts/
+│  ├─ validate-plan.js
+│  ├─ run-evals.js
+│  ├─ check-drift.js
+│  └─ package-plugin.js
 ├─ references/
 │  ├─ benchmarks.md
 │  ├─ long-term-agents.md
 │  ├─ maintenance.md
 │  ├─ project-scale-planning.md
 │  ├─ planner-details.md
-│  └─ prompt-templates.md
-└─ opsx-parallel.md
+│  ├─ prompt-templates.md
+│  └─ runtime-compatibility.md
+├─ docs/
+│  ├─ request-flow.md
+│  └─ request-flow.zh-CN.md
+├─ INSTALL.md
+├─ COMPATIBILITY.md
+├─ CHANGELOG.md
+├─ LICENSE
+└─ CONTRIBUTING.md
 ```
 
-File roles:
+## Automated Verification
 
-- `SKILL.md`: core planning logic, lane heuristics, model/reasoning guidance
-- `agents/openai.yaml`: agent metadata and default prompt entry
-- `docs/request-flow.md`: where the skill fits in a Codex request and what happens after lanes return
-- `docs/request-flow.zh-CN.md`: Chinese request-flow explanation
-- `examples/fixtures.md`: expected behavior examples for launch, hold, and promotion decisions
-- `references/benchmarks.md`: historical benchmark snapshots and recording rules
-- `references/long-term-agents.md`: detailed criteria for reusable agent promotion
-- `references/maintenance.md`: source-of-truth, drift check, and benchmark update guidance
-- `references/project-scale-planning.md`: module graph, shared-contract ownership, frontier, wave, and replanning rules for complete software goals
-- `references/prompt-templates.md`: reusable lane prompt templates
-- `references/planner-details.md`: detailed lane planning rules loaded only when the split is unclear
-- `opsx-parallel.md`: companion command entry for lightweight planning and prompt generation
+Run the full automated test suite:
 
-## Design Principles
+```bash
+npm test
+```
 
-- Minimum viable lanes, not arbitrary lane counts
-- Scale first: keep bounded tasks cheap, but inventory the complete in-scope product before parallelizing multi-module software
-- Project waves follow the dependency graph; never reduce a complete-product goal to the first visible module
-- Cost-aware launches: consider subagents on one strong split signal, but merge tiny same-gate writebacks instead of spawning one worker per file
-- Child prompts are non-recursive: spawned lanes execute locally and do not split or launch more subagents
-- In task mode, avoid repository-heavy discovery; in project mode, use one bounded discovery lane when the execution graph is unknown
-- Real execution constraints matter: only use actual supported agent types
-- Considering subagents is not the same as launching them; launch only lanes with a clear goal, bounded scopes, useful deliverable, and acceptance checks
-- Multiple write-enabled workers are allowed when prompts are compact, write scopes are disjoint, and expected benefit should justify child context cost
-- Agent type, model, and reasoning can be assigned per lane; default to non-inheriting child context, and inherit full history only when a compact lane brief is not enough
-- Treat one broad final test suite as main-thread integration work; workers should run lane-local checks instead of duplicating broad verification
-- Hold lanes when write scopes overlap, acceptance is unclear, or a worker depends on unfinished explorer findings
-- Prefer concrete files, tests, docs, and ledgers when the user provides them
-- Keep integration and final reconciliation in the main thread, and do not edit a launched worker's write scope while it is running
-- Separate Codex subagents still receive runtime base context; this skill reduces copied history, recursive planning, and lane prompt size rather than claiming shared prompt context
+Includes static integrity checking, schema validation, and behavioral evals.
 
-## Maintenance Workflow
+## License
 
-1. Update the skill sources and companion prompt assets.
-2. Update fixtures or references when behavior changes.
-3. Sync the installed local skill from this repository.
-4. Review the diff and run `git diff --check`.
-5. Commit and push the repository changes.
+[MIT License](LICENSE) © 2026 manhua-man

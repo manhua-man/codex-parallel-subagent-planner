@@ -2,10 +2,18 @@
 
 Use this reference when defining lane fields, checking scope boundaries, or evaluating hold conditions.
 
+## Lane Slicing & Quality Criteria
+
+Read [references/decomposition.md](references/decomposition.md) for full slicing heuristics:
+- **Vertical Split**: Slices end-to-end user feature capabilities (UI + API + Test) into a single lane to avoid inter-lane deadlocks.
+- **Horizontal Split**: Slices decoupled independent modules operating on disjoint packages or services.
+
+Every candidate lane MUST satisfy 6 quality criteria: Single Goal, Clear Input, Clear Output, Bounded Scope, Independent Progress, and Verifiable Acceptance.
+
 ## Lane Fields
 
 - `id`: unique string identifier for the lane.
-- `agent_type`: `explorer` (read-only audit/discovery), `worker` (implementation), or `default`.
+- `role`: `explorer` (read-only audit/discovery), `worker` (implementation), `verifier` (quality audit), or `default`.
 - `model_profile`: `deep`, `balanced`, or `fast`.
 - `reasoning_profile`: `auto`, `low`, `medium`, or `high`.
 - `read_scope`: array of canonical exact file paths (`src/api/index.ts`) or subtree globs (`src/api/**`).
@@ -15,6 +23,7 @@ Use this reference when defining lane fields, checking scope boundaries, or eval
 - `depends_on`: array of prerequisite lane IDs or contract IDs.
 - `state`: `ready`, `running`, `blocked`, `integrated`, `done`, or `held`.
 - `held_reason`: `safe`, `overlap`, `blocked`, `dependency`, `contract`, `unclear_scope`, `unclear_acceptance`, `verification_failed`.
+- `lane_quality`: optional quality check audit object (`single_goal`, `bounded_scope`, `independent_progress`, `verifiable_acceptance`).
 
 ## Scope Collision & Race Condition Rules
 

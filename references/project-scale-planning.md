@@ -5,11 +5,12 @@ Use this guide when a goal spans multiple modules, services, packages, or testab
 ## Execution Workflow
 
 1. **Discover Product Surface**: Inventory all packages, modules, routes, databases, and services within scope.
-2. **Build Module Matrix**: Map each module's capabilities, dependencies, read/write scopes, and acceptance criteria.
-3. **Assign Shared Contract Owners**: Assign exactly one owner lane per wave for each shared API, schema, router, or global config.
-4. **Compute Parallel Frontier**: Identify lanes whose dependencies and prerequisite contracts are fully satisfied (`done` or `integrated`).
-5. **Launch Wave**: Launch only ready frontier lanes within budget constraints. Hold dependent downstream modules.
-6. **Integrate & Replan**: After wave completion, integrate outputs, update module statuses, and recompute the next frontier.
+2. **Determine Slicing Strategy**: Choose between Vertical Split (feature capability lanes) and Horizontal Split (decoupled module lanes) as detailed in [references/decomposition.md](references/decomposition.md).
+3. **Build Module Matrix**: Map each module's capabilities, dependencies, read/write scopes, and acceptance criteria.
+4. **Assign Shared Contract Owners**: Assign exactly one owner lane per wave for each shared API, schema, router, or global config.
+5. **Compute Parallel Frontier**: Identify lanes whose dependencies and prerequisite contracts are fully satisfied (`done` or `integrated`).
+6. **Launch Wave**: Launch only ready frontier lanes within budget constraints. Hold dependent downstream modules.
+7. **Integrate & Replan**: After wave completion, integrate outputs, update module statuses, and recompute the next frontier.
 
 ## Module Matrix Template
 
@@ -18,6 +19,7 @@ Track module work using these fields:
 ```text
 - module: [name]
   owns: [primary capability or service]
+  slicing_strategy: vertical | horizontal | hybrid
   depends_on: [prerequisite modules or contract IDs]
   shared_contracts: [contract IDs assigned or consumed]
   read_scope: [dir/** or path/to/file]
@@ -31,4 +33,4 @@ Track module work using these fields:
 
 If the project architecture or module boundaries are unclear:
 - Launch ONE read-only discovery lane (`agent_type: explorer`, `write_scope: []`).
-- Hold all implementation workers until the discovery lane returns a verified module matrix and dependency graph.
+- Hold all implementation workers until the discovery lane returns a verified module matrix, dependency graph, and recommended slicing strategy.

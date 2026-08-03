@@ -14,7 +14,7 @@
   "properties": {
     "schema_version": {
       "type": "string",
-      "enum": ["1.0"]
+      "enum": ["1.0", "1.1"]
     },
     "mode": {
       "type": "string",
@@ -30,6 +30,10 @@
         },
         "reason": {
           "type": "string"
+        },
+        "split_strategy": {
+          "type": "string",
+          "enum": ["vertical", "horizontal", "hybrid", "none"]
         }
       }
     },
@@ -128,6 +132,16 @@
               "unclear_acceptance",
               "verification_failed"
             ]
+          },
+          "lane_quality": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "single_goal": { "type": "boolean" },
+              "bounded_scope": { "type": "boolean" },
+              "independent_progress": { "type": "boolean" },
+              "verifiable_acceptance": { "type": "boolean" }
+            }
           }
         }
       }

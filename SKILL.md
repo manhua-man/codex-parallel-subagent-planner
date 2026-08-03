@@ -38,7 +38,15 @@ Split only if ALL of the following are true:
 
 If any condition fails or there is no strong parallel benefit, do NOT split: execute directly in the main thread.
 
-## 3. Define Safe Lanes
+## 3. Define Safe Lanes & Slicing Strategy
+
+Read [references/decomposition.md](references/decomposition.md) for decomposition heuristics and lane quality criteria.
+
+Select the optimal slicing strategy based on codebase structure:
+- **Vertical Split (End-to-End Capability)**: Groups UI, API, DTOs, and tests for a single user feature into one lane (e.g. `user-profile-capability`). Recommended for product feature requests to prevent inter-agent deadlocks.
+- **Horizontal Split (Decoupled Module)**: Separates distinct, independent modules or services (e.g. Payment vs. Notification vs. Search) operating on disjoint packages.
+
+Every candidate lane MUST satisfy 6 quality criteria: Single Goal, Clear Input, Clear Output, Bounded Scope, Independent Progress, and Verifiable Acceptance.
 
 Assign each lane an explicit role (`explorer`, `worker`, `verifier`, or `default`), read/write scopes, deliverable, acceptance criteria, and model profile:
 - `deep`: ambiguous root cause, security-sensitive work, complex shared contracts, high-risk integration, final review.
@@ -92,20 +100,20 @@ In project mode: after each wave completes, verify shared contracts and outputs,
 ### Compact (Default)
 Return Compact by default for human review:
 1. **Why split or not split**: brief rationale.
-2. **Launch now**: list of ready lanes with model profiles and scopes.
+2. **Launch now**: list of ready lanes with model profiles, slicing strategies, and scopes.
 3. **Held lanes**: list of held lanes with specific hold reasons.
 4. **Integration note**: main thread verification and integration sequence.
 
 ### Full
 Return Full when requested or during complex diagnostic reviews:
-1. Scale decision & surface map.
+1. Scale decision, surface map, and slicing strategy (vertical vs horizontal).
 2. Complete lane table with dependencies & contract owners.
 3. Current wave & ready child prompts.
 4. Integration and replan instructions.
 
 ### Machine
 Return Machine JSON only when explicitly requested, when another program will consume the result, or when downstream schedulers require a versioned contract:
-- Follow `schema/planner-plan.schema.json` with `"schema_version": "1.0"`.
+- Follow `schema/planner-plan.schema.json` with `"schema_version": "1.1"`.
 - Read [references/machine-schema.md](references/machine-schema.md) for protocol details and boundaries.
 - Do not include Markdown fences or conversational text.
 

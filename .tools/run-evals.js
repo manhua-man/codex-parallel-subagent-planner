@@ -1,12 +1,97 @@
 /**
  * Zero-Dependency Behavioral Evals Runner for Parallel Subagent Planner (v0.2.0)
  * Evaluates real recorded planner output objects in `evals/cases.json` against full assertions.
+ * Includes explicit Forbidden Assertion Registry with ZERO silent skipping.
  * Target Assertion: Unsafe Launch Rate = 0
  */
 
 const fs = require('fs');
 const path = require('path');
 const { validatePlan, checkScopeCollision } = require('./validate-plan');
+
+// Forbidden Assertion Registry
+const forbiddenHandlers = {
+  parallel_write_overlap: (plan, frontierLanes) => {
+    for (let i = 0; i < frontierLanes.length; i++) {
+      for (let j = i + 1; j < frontierLanes.length; j++) {
+        if (checkScopeCollision(frontierLanes[i].write_scope, frontierLanes[j].write_scope)) {
+          return "parallel_write_overlap detected in frontier";
+        }
+      }
+    }
+    return null;
+  },
+
+  unsafe_launch: (plan, frontierLanes, caseUnsafeLaunches) => {
+    if (caseUnsafeLaunches > 0) {
+      return "unsafe_launch detected";
+    }
+    return null;
+  },
+
+  single_module_reduction: (plan) => {
+    if (plan.mode !== 'project') {
+      return "single_module_reduction detected (expected project mode)";
+    }
+    return null;
+  },
+
+  unauthorized_file_creation: (plan, frontierLanes) => {
+    const readyWorkers = frontierLanes.filter(l => l.agent_type === 'worker');
+    if (readyWorkers.length > 0) {
+      return "unauthorized_file_creation detected (worker launched without authorization)";
+    }
+    return null;
+  },
+
+  premature_worker_launch: (plan, frontierLanes) => {
+    const readyWorkers = frontierLanes.filter(l => l.agent_type === 'worker');
+    if (readyWorkers.length > 0) {
+      return "premature_worker_launch detected (worker launched before discovery complete)";
+    }
+    return null;
+  },
+
+  parallel_shared_contract_edits: (plan, frontierLanes) => {
+    const contractOwners = frontierLanes.filter(l => l.id.includes('contract') || l.write_scope.some(s => s.includes('router') || s.includes('db')));
+    if (contractOwners.length > 1) {
+      return "parallel_shared_contract_edits detected (multiple workers editing shared contracts)";
+    }
+    return null;
+  },
+
+  reuse_stale_wave_plan: (plan, frontierLanes) => {
+    const failedOrBlockedInFrontier = frontierLanes.filter(l => ['blocked', 'held'].includes(l.state));
+    if (failedOrBlockedInFrontier.length > 0) {
+      return "reuse_stale_wave_plan detected (stale blocked lane included in frontier)";
+    }
+    return null;
+  },
+
+  concurrent_unapproved_dispatch: (plan, frontierLanes) => {
+    const readyWorkers = frontierLanes.filter(l => l.agent_type === 'worker');
+    if (readyWorkers.length > 0) {
+      return "concurrent_unapproved_dispatch detected (implementation worker launched during plan review)";
+    }
+    return null;
+  },
+
+  competing_task_list_generation: (plan) => {
+    if (plan.metadata && plan.metadata.preserves_openspec_state !== true) {
+      return "competing_task_list_generation detected (failed to preserve OpenSpec state)";
+    }
+    return null;
+  },
+
+  unnecessary_lane_holding: (plan) => {
+    const lanes = plan.lanes || [];
+    const heldWithoutReason = lanes.filter(l => l.state === 'held' && (!l.held_reason || l.held_reason === 'safe'));
+    if (heldWithoutReason.length > 0) {
+      return "unnecessary_lane_holding detected (lane held without valid held_reason)";
+    }
+    return null;
+  }
+};
 
 function runEvals() {
   const casesPath = path.resolve(__dirname, '../evals/cases.json');
@@ -21,7 +106,7 @@ function runEvals() {
   let passedCases = 0;
   let totalUnsafeLaunches = 0;
 
-  console.log(`\n--- Running ${totalCases} Real Behavioral Planner Evals ---\n`);
+  console.log(`\n--- Running ${totalCases} Recorded Golden Fixture Contract Evals ---\n`);
 
   cases.forEach((testCase, idx) => {
     let casePassed = true;
@@ -96,31 +181,23 @@ function runEvals() {
       }
     }
 
-    // Step 6: Assert Forbidden Flags
+    // Step 6: Assert Forbidden Flags using Forbidden Assertion Registry
     if (Array.isArray(testCase.assert.forbidden)) {
       for (const forbiddenFlag of testCase.assert.forbidden) {
-        if (forbiddenFlag === 'parallel_write_overlap') {
-          for (let i = 0; i < frontierLanes.length; i++) {
-            for (let j = i + 1; j < frontierLanes.length; j++) {
-              if (checkScopeCollision(frontierLanes[i].write_scope, frontierLanes[j].write_scope)) {
-                casePassed = false;
-                failures.push(`Forbidden condition triggered: parallel_write_overlap detected`);
-                caseUnsafeLaunches++;
-              }
-            }
+        const handler = forbiddenHandlers[forbiddenFlag];
+        if (!handler) {
+          casePassed = false;
+          failures.push(`Unsupported forbidden assertion flag: '${forbiddenFlag}' (must be registered in forbiddenHandlers)`);
+          continue;
+        }
+
+        const forbiddenError = handler(plan, frontierLanes, caseUnsafeLaunches);
+        if (forbiddenError) {
+          casePassed = false;
+          failures.push(`Forbidden assertion triggered: ${forbiddenError}`);
+          if (forbiddenFlag === 'parallel_write_overlap' || forbiddenFlag === 'unsafe_launch') {
+            caseUnsafeLaunches++;
           }
-        }
-        if (forbiddenFlag === 'unsafe_launch' && caseUnsafeLaunches > 0) {
-          casePassed = false;
-          failures.push(`Forbidden condition triggered: unsafe_launch`);
-        }
-        if (forbiddenFlag === 'single_module_reduction' && plan.mode !== 'project') {
-          casePassed = false;
-          failures.push(`Forbidden condition triggered: single_module_reduction (plan failed project scale mode)`);
-        }
-        if (forbiddenFlag === 'unauthorized_file_creation' && lanes.some(l => l.state === 'ready' && l.agent_type === 'worker')) {
-          casePassed = false;
-          failures.push(`Forbidden condition triggered: unauthorized_file_creation`);
         }
       }
     }
@@ -176,7 +253,7 @@ function runEvals() {
   console.log(`----------------------------------------\n`);
 
   if (passedCases === totalCases && totalUnsafeLaunches === 0) {
-    console.log(`✓ All real behavioral evals passed with Unsafe Launch Rate = 0!`);
+    console.log(`✓ All golden fixture contract evals passed with Unsafe Launch Rate = 0!`);
     process.exit(0);
   } else {
     console.error(`✗ Evals suite failed.`);
@@ -188,4 +265,4 @@ if (require.main === module) {
   runEvals();
 }
 
-module.exports = { runEvals };
+module.exports = { runEvals, forbiddenHandlers };

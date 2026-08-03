@@ -1,6 +1,6 @@
 /**
- * Zero-Dependency Pure Node.js Static Audit & Drift Checker for Parallel Subagent Planner (v0.2.0)
- * Validates file links, YAML frontmatter, TOML syntax, and document synchronization.
+ * Zero-Dependency Pure Node.js Static Integrity & Drift Checker for Parallel Subagent Planner (v0.2.0)
+ * Validates file links, YAML frontmatter, TOML syntax, document synchronization, and Schema Validator drift.
  */
 
 const fs = require('fs');
@@ -73,6 +73,7 @@ function checkDrift() {
     'README.zh-CN.md',
     'opsx-parallel.md',
     'schema/planner-plan.schema.json',
+    '.tools/schema-validator.js',
     'references/planner-details.md',
     'references/project-scale-planning.md',
     'references/runtime-compatibility.md',
@@ -95,7 +96,16 @@ function checkDrift() {
     }
   });
 
-  // Check 2: SKILL.md YAML Frontmatter Validation
+  // Check 2: Schema Standalone Validator Integrity Check
+  const schemaValidatorPath = path.join(rootDir, '.tools/schema-validator.js');
+  if (fs.existsSync(schemaValidatorPath)) {
+    const content = fs.readFileSync(schemaValidatorPath, 'utf8');
+    if (!content.includes('validate') || !content.includes('exports')) {
+      errors.push('.tools/schema-validator.js is missing compiled validate function export');
+    }
+  }
+
+  // Check 3: SKILL.md YAML Frontmatter Validation
   const skillPath = path.join(rootDir, 'SKILL.md');
   if (fs.existsSync(skillPath)) {
     const content = fs.readFileSync(skillPath, 'utf8');
@@ -112,7 +122,7 @@ function checkDrift() {
     }
   }
 
-  // Check 3: Long-Term Agent TOML Template Validation
+  // Check 4: Long-Term Agent TOML Template Validation
   const ltaPath = path.join(rootDir, 'references/long-term-agents.md');
   if (fs.existsSync(ltaPath)) {
     const ltaContent = fs.readFileSync(ltaPath, 'utf8');
@@ -130,7 +140,7 @@ function checkDrift() {
     }
   }
 
-  // Check 4: Markdown Relative Link Verification
+  // Check 5: Markdown Relative Link Verification
   function checkMarkdownLinks(fileRelPath) {
     const filePath = path.join(rootDir, fileRelPath);
     if (!fs.existsSync(filePath)) return;
@@ -151,7 +161,7 @@ function checkDrift() {
 
   requiredFiles.filter(f => f.endsWith('.md')).forEach(checkMarkdownLinks);
 
-  // Check 5: English / Chinese Document Synchronization
+  // Check 6: English / Chinese Document Synchronization
   const enReadme = fs.readFileSync(path.join(rootDir, 'README.md'), 'utf8');
   const zhReadme = fs.readFileSync(path.join(rootDir, 'README.zh-CN.md'), 'utf8');
   if (enReadme.includes('v0.2.0') && !zhReadme.includes('v0.2.0')) {

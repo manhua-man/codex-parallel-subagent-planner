@@ -8,6 +8,8 @@
     "test:drift": "node .tools/check-drift.js",
     "test:validator": "node test/validator.test.js",
     "test:evals": "node .tools/run-evals.js",
+    "eval:planner": "node .tools/run-evals.js",
+    "schema:check": "node .tools/check-drift.js",
     "validate:plan": "node .tools/validate-plan.js",
     "package:plugin": "node .tools/package-plugin.js",
     "install:skill": "node .tools/install-skill.js"

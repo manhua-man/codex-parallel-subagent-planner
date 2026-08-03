@@ -1,31 +1,35 @@
 /**
  * Zero-Dependency Pure Node.js Plan Validator for Parallel Subagent Planner (v0.2.0)
  * Uses compiled Ajv standalone schema validator (.tools/schema-validator.js) for 100% schema parity,
- * and enforces strict scope syntax and 9 safety/contract invariants.
+ * enforces canonical scope syntax (rejects dot-segments / double slashes / aliases), and enforces 9 safety/contract invariants.
  */
 
 const fs = require('fs');
 const path = require('path');
 const validateSchema = require('./schema-validator');
 
-// Normalize path string
+// Canonical path normalization (cross-platform case-canonical lower-case for path segment comparison)
 function normalizePath(p) {
   if (typeof p !== 'string') return '';
-  let norm = p.replace(/\\/g, '/').trim();
-  if (norm.startsWith('./')) norm = norm.slice(2);
-  return norm;
+  return p.replace(/\\/g, '/').trim();
 }
 
-// Scope Syntax Validator: Only allows exact files or subtree globs (dir/**)
+// Scope Syntax Validator: Only allows exact canonical files or subtree globs (dir/**)
 function isValidScopeSyntax(p) {
   if (typeof p !== 'string') return false;
   const norm = normalizePath(p);
 
   if (norm === '' || norm.startsWith('/') || /^[a-zA-Z]:/.test(norm)) {
-    return false; // Reject empty, absolute Linux or Windows paths
+    return false; // Reject empty or absolute Linux / Windows paths
   }
-  if (norm.includes('..') || norm.includes('//')) {
-    return false; // Reject relative parent navigation or double slashes
+
+  // Split into segments and check canonical path segment rules
+  const segments = norm.split('/');
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i];
+    if (seg === '' || seg === '.' || seg === '..') {
+      return false; // Reject empty segments (double slashes //), '.', or '..'
+    }
   }
 
   // Check wildcards: only allowed at the end as /**
@@ -38,10 +42,10 @@ function isValidScopeSyntax(p) {
   return true;
 }
 
-// Path Intersection Algorithm
+// Path Intersection Algorithm (Canonical & Case-Insensitive for Cross-Platform Safety)
 function isPathIntersection(patternA, patternB) {
-  const normA = normalizePath(patternA);
-  const normB = normalizePath(patternB);
+  const normA = normalizePath(patternA).toLowerCase();
+  const normB = normalizePath(patternB).toLowerCase();
 
   if (normA === normB) return true;
 
@@ -101,12 +105,12 @@ function validatePlan(planData) {
   const frontier = planData.frontier || [];
   const budget = planData.budget || {};
 
-  // Step 2: Validate Scope Syntax
+  // Step 2: Validate Scope Canonical Syntax
   for (const lane of lanes) {
     const allScopes = [...(lane.read_scope || []), ...(lane.write_scope || [])];
     for (const s of allScopes) {
       if (!isValidScopeSyntax(s)) {
-        errors.push(`Lane '${lane.id}' has invalid scope syntax '${s}'. Must be exact path or dir/** without '..' or arbitrary wildcards.`);
+        errors.push(`Lane '${lane.id}' has invalid scope syntax '${s}'. Scope must be canonical relative path (no '.', '..', '//', absolute paths, or arbitrary wildcards outside '/**').`);
       }
     }
   }

@@ -1,0 +1,23 @@
+{
+  "name": "codex-parallel-subagent-planner",
+  "version": "0.2.0",
+  "description": "Cost-aware execution parallelism planner skill for Codex (Planner Contract v0.2.0)",
+  "main": "scripts/validate-plan.js",
+  "scripts": {
+    "test": "node scripts/check-drift.js && node scripts/validate-plan.js examples/plans/task-mode-plan.json && node scripts/validate-plan.js examples/plans/project-mode-plan.json && node scripts/run-evals.js",
+    "test:drift": "node scripts/check-drift.js",
+    "validate:plan": "node scripts/validate-plan.js",
+    "test:evals": "node scripts/run-evals.js",
+    "package:plugin": "node scripts/package-plugin.js"
+  },
+  "keywords": [
+    "codex",
+    "subagents",
+    "planner",
+    "planner-contract",
+    "parallelism",
+    "evals"
+  ],
+  "author": "manhua-man",
+  "license": "MIT"
+}

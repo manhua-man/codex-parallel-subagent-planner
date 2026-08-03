@@ -2,82 +2,69 @@
 
 This document defines the strategic vision, boundary rules, and release roadmap for `parallel-subagent-planner`.
 
-## Product Positioning
+## Product Positioning & Philosophy
 
 `parallel-subagent-planner` is an **Agent Planning Harness Skill** (also referred to as the **Codex Parallel Planning Intelligence Layer**).
 
-It is NOT an Agent Runtime, Multi-Agent Framework, or programmatic SDK. Its core value is helping Codex act like a senior engineer when organizing multi-agent work—making decisions on decomposition, scope boundaries, context budget, prompt specialization, and role evolution.
+It is an instruction-only AI Skill that injects senior engineering cognitive capabilities into an Agent Runtime. It helps Codex decide how to split tasks, isolate contexts, schedule waves, serialize versioned plan schemas, and evolve long-term agent candidates.
 
 ```text
-┌────────────────────────────────────────────────────────┐
-│             parallel-subagent-planner                  │
-│             (Planning Harness Skill)                   │
-│                                                        │
-│  - Split Decision (Scale Gate & Split Gate)            │
-│  - Decomposition Intelligence (Vertical vs Horizontal) │
-│  - Context Engineering (Read, Write, Ignore Scopes)    │
-│  - Prompt Specialization (Role-Tailored Prompts)       │
-│  - Machine Schema Protocol (schema/planner-plan.json)  │
-│  - Agent Evolution (Candidate Quality & Noise Filter)  │
-│  - Planning Personalization (User Preference Style)    │
-└──────────────────────────┬─────────────────────────────┘
-                           │
-             [ Guides Active Codex Session ]
-                           │
-┌──────────────────────────▼─────────────────────────────┐
-│                 Codex Agent Runtime                    │
-│                                                        │
-│  - Thread Handles & Process Execution                  │
-│  - File System Access & Tool Execution                 │
-│  - Subagent Spawning & Message IPC                     │
-└────────────────────────────────────────────────────────┘
+                         Harness Skill
+
+
+                              |
+
+        ------------------------------------------------
+
+        Planner        Planning State        Memory
+
+           |                 |                 |
+
+        Policy          Machine Schema     Agent Evolution
+
+
+                              |
+
+                     Planning Protocol
+
+
+                              |
+
+                    Codex / Agent Runtime
+
+
+                              |
+
+                           Agents
 ```
+
+### Core Principle
+- **Skill is the Cognitive Layer; Runtime is the Execution Layer**: The Skill owns structure understanding, multi-agent collaboration planning, context budget allocation, and candidate evolution. Physical code modifications, thread handles, scheduling, and execution belong 100% to Codex Runtime.
 
 ---
 
-## Skill Boundaries & Anti-Scope
+## Anti-Scope (The Four Hard Boundaries)
 
 To maintain clean skill boundaries, `parallel-subagent-planner` will **NEVER**:
 
-- ❌ Manage physical Agent lifecycles (`spawn()`, `run()`, `kill()`).
-- ❌ Maintain physical runtime databases or persistent state stores.
-- ❌ Execute automatic programmatic retries or worker queues.
-- ❌ Handle Agent-to-Agent IPC message routing.
-- ❌ Compete with multi-agent runtimes (e.g., LangGraph, AutoGen, CrewAI).
+- ❌ **No Physical Runtime**: Does not implement `spawn()`, `run()`, `kill()` process handles.
+- ❌ **No Physical Scheduler**: Does not maintain physical task queues, priority queues, or worker thread pools.
+- ❌ **No Communication Layer**: Does not implement inter-agent message buses or mailboxes.
+- ❌ **No Physical Database**: Does not maintain task databases, execution logs, or metrics systems.
 
-All physical execution, threading, tool calling, and IPC belong 100% to **Codex / Agent Runtime**.
+All physical execution, threading, tool calling, and IPC belong 100% to **Codex / Agent Runtime / External Orchestrator**.
 
 ---
 
-## Release Roadmap
+## Complete Release Roadmap
 
-### v0.3.0 — Planning Protocol Foundation (Current Release)
-- **Focus**: Core split gate, Task vs Project mode, safety invariants (`write ∩ write = ∅`, `write ∩ read = ∅`), contract owners, wave scheduling, Machine Schema contract (`schema_version: "1.0"`), Long-Term Agent Candidate policy (`promotion_check: silent`).
-
-### v0.4.0 — Decomposition Intelligence
-- **Focus**: Planning Quality Upgrade.
-- **Capabilities**:
-  - **Vertical vs. Horizontal Split**: Vertical Split (end-to-end capability slicing, e.g., API + UI + Test per user value) vs. Horizontal Split (decoupled module slicing) to prevent inter-agent blocking.
-  - **Lane Quality Criteria**: Validating single goal, bounded scopes, explicit deliverables, and pass/fail acceptance per lane.
-
-### v0.5.0 — Context Engineering
-- **Focus**: Agent Context Budget Policy.
-- **Capabilities**:
-  - **Context Scope**: Bounding `read_scope`, `write_scope`, and `ignore_scope` (e.g., excluding `node_modules/**`, build artifacts, and irrelevant packages) to eliminate context bloat.
-  - **Noise Boundaries**: Explicitly defining files and directories that child subagents must NOT inspect or touch.
-
-### v0.6.0 — Prompt Specialization
-- **Focus**: Role-Tailored Prompt Templates.
-- **Capabilities**: Specialized prompts tailored to lane objectives: Explorer (read-only audit), Implementer (bounded modification), Reviewer (risk challenge), Migrator (backward compatibility).
-
-### v0.7.0 — Agent Evolution
-- **Focus**: Candidate Quality & Noise Filter.
-- **Capabilities**: Candidate Quality Filters (`Frequency` + `Stability` + `Boundary` + `Reuse Value`); rejecting temporary task workers; max 1 candidate per run; explicit user approval required before generating `.toml` files.
-
-### v0.8.0 — Planning Personalization
-- **Focus**: User Preference Learning.
-- **Capabilities**: Adapt planning styles to user preferences (e.g., risk tolerance, maximum concurrency limits, discovery bias, single-owner preference).
-
-### v1.0.0 — Mature Planning Harness Skill
-- **Focus**: Complete Planning Intelligence Stack.
-- **Capabilities**: Unified synthesis of Decomposition, Context Engineering, Prompt Specialization, Agent Evolution, and Personalization guiding host runtimes.
+| Release | Focus Area | Harness Layer | Key Capabilities |
+| --- | --- | --- | --- |
+| **v0.3.0 (Current)** | **Planning Protocol Foundation** | Planner | Task vs. Project Scale Gate, Split Gate, scope safety invariants (`write ∩ write = ∅`, `write ∩ read = ∅`), contract owners, wave scheduling, Machine Schema (`schema_version: "1.0"`), Long-Term Agent Candidates (`promotion_check: silent`). |
+| **v0.4.0** | **Decomposition Intelligence** | Planner | Vertical Split (end-to-end capability slicing, e.g., API + UI + Test per user value) vs. Horizontal Split (decoupled module slicing); Lane Quality Criteria (single goal, bounded scopes, clear deliverables, verifiable acceptance). |
+| **v0.5.0** | **Planning State Awareness** | State | Planner understands execution state without maintaining a runtime database; recomputes only affected parallel frontiers upon incremental status updates. |
+| **v0.6.0** | **Context Harness** | Context | Context Budget Engineering: formalizing Global Context, Lane Context, and Noise Boundaries (`ignore_scope` for `node_modules/**`, build artifacts, etc.) to eliminate context bloat. |
+| **v0.7.0** | **Prompt Specialization** | Policy | Role-tailored child prompts: Explorer (read-only audit), Implementer (bounded modification), Reviewer (risk challenge), Migrator (backward compatibility). |
+| **v0.8.0** | **Planning Principles** | Policy | Formalizing planning principles (Parallelism Principle, Contract Ownership Principle, Minimal Lane Principle, Exploration Principle, Integration Principle). |
+| **v0.9.0** | **Agent Evolution** | Memory | Enhanced agent candidate lifecycle (`Candidate` ➔ `Review` ➔ `Approved` ➔ `Persistent Agent` ➔ `Retire`) with strict candidate quality filters (`Frequency` + `Stability` + `Boundary` + `Reuse Value`). |
+| **v1.0.0** | **Agent Planning Harness Skill** | All Layers | Complete, mature Planning Harness Intelligence stack for host runtimes. |

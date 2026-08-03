@@ -57,7 +57,8 @@
         "additionalProperties": false,
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
           "owner": {
             "type": ["string", "null"]
@@ -91,7 +92,8 @@
         "additionalProperties": false,
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
           "agent_type": {
             "type": "string",
@@ -150,6 +152,7 @@
               "contract",
               "unclear_scope",
               "unclear_acceptance",
+              "verification_failed",
               "cost"
             ]
           },

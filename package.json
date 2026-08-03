@@ -1,14 +1,16 @@
 {
   "name": "codex-parallel-subagent-planner",
   "version": "0.2.0",
-  "description": "Cost-aware execution parallelism planner skill for Codex (Planner Contract v0.2.0)",
-  "main": "scripts/validate-plan.js",
+  "description": "Cost-aware execution parallelism planner skill for Codex (v0.2.0)",
+  "main": ".tools/validate-plan.js",
   "scripts": {
-    "test": "node scripts/check-drift.js && node scripts/validate-plan.js examples/plans/task-mode-plan.json && node scripts/validate-plan.js examples/plans/project-mode-plan.json && node scripts/run-evals.js",
-    "test:drift": "node scripts/check-drift.js",
-    "validate:plan": "node scripts/validate-plan.js",
-    "test:evals": "node scripts/run-evals.js",
-    "package:plugin": "node scripts/package-plugin.js"
+    "test": "node .tools/check-drift.js && node test/validator.test.js && node .tools/validate-plan.js examples/plans/task-mode-plan.json && node .tools/validate-plan.js examples/plans/project-mode-plan.json && node .tools/run-evals.js",
+    "test:drift": "node .tools/check-drift.js",
+    "test:validator": "node test/validator.test.js",
+    "test:evals": "node .tools/run-evals.js",
+    "validate:plan": "node .tools/validate-plan.js",
+    "package:plugin": "node .tools/package-plugin.js",
+    "install:skill": "node .tools/install-skill.js"
   },
   "keywords": [
     "codex",
@@ -19,5 +21,7 @@
     "evals"
   ],
   "author": "manhua-man",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
 }

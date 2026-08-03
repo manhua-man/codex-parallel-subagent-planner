@@ -11,7 +11,7 @@ description: >-
   route work to external coding-agent backends.
 ---
 
-# Parallel Subagent Planner
+# Parallel Subagent Planner (v1.0.0 Mature Harness Skill)
 
 Decide whether subagents materially help, split accepted implementation work into bounded lanes, hold coupled work, and schedule multi-module projects in dependency-safe waves.
 
@@ -26,7 +26,9 @@ Use **project mode** when any one is true:
 
 In project mode, read [references/project-scale-planning.md](references/project-scale-planning.md). Map the full product surface, assign shared contract owners, and compute the parallel frontier before launching workers. If scope is unclear, launch one read-only discovery lane first and hold implementation. Never silently reduce a project request to a single module.
 
-## 2. Decide Whether To Split
+## 2. Decide Whether To Split & Apply Planning Principles
+
+Read [references/planning-principles.md](references/planning-principles.md) for senior-engineering planning principles.
 
 Consider subagents only when independent workstreams reduce wall-clock time or a read-only lane de-risks implementation.
 
@@ -38,9 +40,9 @@ Split only if ALL of the following are true:
 
 If any condition fails or there is no strong parallel benefit, do NOT split: execute directly in the main thread.
 
-## 3. Define Safe Lanes & Slicing Strategy
+## 3. Define Safe Lanes, Slicing Strategy & Context Budget
 
-Read [references/decomposition.md](references/decomposition.md) for decomposition heuristics and lane quality criteria.
+Read [references/decomposition.md](references/decomposition.md) for decomposition heuristics and lane quality criteria. Read [references/context-engineering.md](references/context-engineering.md) for context budget rules.
 
 Select the optimal slicing strategy based on codebase structure:
 - **Vertical Split (End-to-End Capability)**: Groups UI, API, DTOs, and tests for a single user feature into one lane (e.g. `user-profile-capability`). Recommended for product feature requests to prevent inter-agent deadlocks.
@@ -48,7 +50,12 @@ Select the optimal slicing strategy based on codebase structure:
 
 Every candidate lane MUST satisfy 6 quality criteria: Single Goal, Clear Input, Clear Output, Bounded Scope, Independent Progress, and Verifiable Acceptance.
 
-Assign each lane an explicit role (`explorer`, `worker`, `verifier`, or `default`), read/write scopes, deliverable, acceptance criteria, and model profile:
+Define Context Boundaries:
+- `read_scope`: explicit file paths or directory subtrees (`src/auth/**`).
+- `write_scope`: explicit write targets (`src/auth/service.ts`).
+- `ignore_scope`: explicit noise boundaries (`node_modules/**`, `dist/**`, `.git/**`, and sibling lane directories).
+
+Assign each lane an explicit role (`explorer`, `worker`, `verifier`, or `default`), read/write/ignore scopes, deliverable, acceptance criteria, and model profile:
 - `deep`: ambiguous root cause, security-sensitive work, complex shared contracts, high-risk integration, final review.
 - `balanced`: bounded implementation, ordinary refactoring, standard feature development, targeted verification.
 - `fast`: read-only scans, information extraction, evidence collection, deterministic transformations.
@@ -67,7 +74,9 @@ Use the minimum viable lane count. When ready lanes exceed concurrency budget:
 
 Hold any lane that touches another lane's files, depends on uncompleted investigation or shared contracts, or lacks clear acceptance. See [references/planner-details.md](references/planner-details.md) for lane mechanics.
 
-## 5. Write Child Prompts
+## 5. Write Child Prompts & Apply Prompt Specialization
+
+Read [references/prompt-strategy.md](references/prompt-strategy.md) for specialized role-tailored prompt templates (Explorer, Implementer, Reviewer, Migrator).
 
 Child prompts must be short, non-recursive, and isolated:
 
@@ -76,6 +85,7 @@ Goal: [one narrow outcome]
 Working directory: [target repository]
 Read first: [bounded files or directories]
 Write: [exact files or directories, or none]
+Ignore: [node_modules/**, dist/**, .git/**, sibling lane dirs]
 Acceptance: [lane-local checks]
 
 Boundary:
@@ -111,29 +121,31 @@ Return Compact by default for human review:
 
 ### Full
 Return Full when requested or during complex diagnostic reviews:
-1. Scale decision, surface map, planning state, and slicing strategy (vertical vs horizontal).
+1. Scale decision, surface map, planning state, context budget, and slicing strategy (vertical vs horizontal).
 2. Complete lane table with dependencies & contract owners.
 3. Current wave & ready child prompts.
 4. Integration and replan instructions.
 
 ### Machine
 Return Machine JSON only when explicitly requested, when another program will consume the result, or when downstream schedulers require a versioned contract:
-- Follow `schema/planner-plan.schema.json` with `"schema_version": "1.2"`.
+- Follow `schema/planner-plan.schema.json` with `"schema_version": "1.6"`.
 - Read [references/machine-schema.md](references/machine-schema.md) for protocol details and boundaries.
 - Do not include Markdown fences or conversational text.
 
-## 8. Long-Term Agent Candidates
+## 8. Long-Term Agent Candidates & Evolution
+
+Read [references/agent-evolution.md](references/agent-evolution.md) for full candidate quality auditing and lifecycle management.
 
 After completing integration, optionally evaluate whether a subagent role qualifies as a reusable custom agent.
 
 Only propose promotion when:
-- The same bounded stewardship or verification responsibility has appeared repeatedly.
+- The same bounded stewardship or verification responsibility has appeared repeatedly (2+ times).
 - Its scope, inputs, outputs, and acceptance checks are stable.
 - A dedicated agent would eliminate repeated manual setup.
 
 **Policy Settings** (`promotion_check`):
 - `off`: do not evaluate promotion.
-- `silent` (default): evaluate internally; report a candidate only when a high-confidence recurring role exists.
+- `silent` (default): evaluate internally; report a candidate only when a high-confidence recurring role exists (`confidence: high`).
 - `ask`: explicitly report qualified candidates after integration.
 
 Never propose more than one candidate per run. Never generate or write a custom agent `.toml` file without explicit user approval. Read [references/long-term-agents.md](references/long-term-agents.md) when a qualified candidate exists or when creating a persistent agent spec.

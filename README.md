@@ -1,18 +1,12 @@
-# parallel-subagent-planner (v0.4.0)
+# parallel-subagent-planner (v1.0.0)
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-`parallel-subagent-planner` is a Codex Skill that decides whether subagents would materially help, splits accepted implementation work into bounded lanes, holds coupled work, schedules multi-module projects in dependency-safe waves, outputs a versioned Machine Schema plan (v1.1), and identifies reusable long-term agent candidates.
-
-## What's New in v0.4.0 (Decomposition Intelligence)
-
-- **Vertical vs. Horizontal Split Slicing**: Dynamically chooses between Vertical Split (end-to-end user feature capability lanes, e.g. UI + API + Test in one lane) and Horizontal Split (decoupled module lanes) to eliminate inter-agent waiting.
-- **Six Lane Quality Criteria**: Audit checks ensuring Single Goal, Clear Input, Clear Output, Bounded Scope, Independent Progress, and Verifiable Acceptance per lane (`references/decomposition.md`).
-- **Machine Schema Protocol v1.1**: Added optional `split_strategy` (`vertical | horizontal | hybrid`) and `lane_quality` audit properties. Fully backward compatible with `1.0` parsers.
+`parallel-subagent-planner` is an **Agent Planning Harness Skill** (Codex Parallel Planning Intelligence Layer) that injects senior engineering cognitive capabilities into an Agent Runtime—guiding Codex on task decomposition, context budgeting, prompt specialization, wave scheduling, Machine Schema serialization (v1.6), and agent role evolution.
 
 ---
 
-## Three-Layer Product Architecture
+## Three-Layer Harness Architecture
 
 ```text
                          Harness Skill
@@ -47,8 +41,20 @@
 ### Core Design Principles
 
 - **Skill is the Cognitive Layer; Runtime is the Execution Layer**: Skill owns structure understanding, multi-agent collaboration planning, context budget allocation, and candidate evolution. Physical code modifications, thread handles, scheduling, and execution belong 100% to Codex Runtime.
-- **Machine Schema Protocol (v1.1)**: Machine mode outputs structured JSON adhering to `schema/planner-plan.schema.json` (`schema_version: "1.1"`, documented in `references/machine-schema.md`) so downstream tools and schedulers can consume plans through a stable data contract.
-- **Long-Term Agent Candidates**: Evaluates recurring subagent roles after integration (`promotion_check: silent` default, documented in `references/long-term-agents.md`) and generates persistent `.codex/agents/<name>.toml` custom agent specs upon explicit user approval.
+- **Machine Schema Protocol (v1.6)**: Machine mode outputs structured JSON adhering to `schema/planner-plan.schema.json` (`schema_version: "1.6"`, documented in `references/machine-schema.md`) so downstream tools and schedulers can consume plans through a stable data contract.
+- **Long-Term Agent Evolution**: Evaluates recurring subagent roles after integration (`promotion_check: silent` default, documented in `references/agent-evolution.md`) through a 5-stage lifecycle (`Candidate` ➔ `Review` ➔ `Approved` ➔ `Persistent Agent` ➔ `Retire`) and generates persistent `.codex/agents/<name>.toml` custom agent specs upon explicit user approval.
+
+---
+
+## Anti-Scope (The Four Hard Boundaries)
+
+This skill strictly avoids physical runtime infrastructure:
+- ❌ **No Physical Runtime**: Does not implement `spawn()`, `run()`, `kill()` process handles.
+- ❌ **No Physical Scheduler**: Does not maintain physical task queues, priority queues, or worker thread pools.
+- ❌ **No Communication Layer**: Does not implement inter-agent message buses or mailboxes.
+- ❌ **No Physical Database**: Does not maintain task databases, execution logs, or metrics systems.
+
+All physical execution, threading, tool calling, and IPC belong 100% to **Codex / Agent Runtime / External Orchestrator**.
 
 ---
 
@@ -64,8 +70,8 @@
 ## Output Modes
 
 - **Compact** (Default): Human-readable summary (`Why split`, `Launch now`, `Held lanes`, `Integration note`).
-- **Full**: Comprehensive text plan with lane tables, contract owners, slicing strategies, and ready child prompts.
-- **Machine**: Pure structured JSON output following `schema/planner-plan.schema.json` (`schema_version: "1.1"`).
+- **Full**: Comprehensive text plan with lane tables, contract owners, slicing strategies, context budgets, and ready child prompts.
+- **Machine**: Pure structured JSON output following `schema/planner-plan.schema.json` (`schema_version: "1.6"`).
 
 ---
 
@@ -103,6 +109,11 @@ parallel-subagent-planner/
 │  └─ planner-plan.schema.json
 ├─ references/
 │  ├─ decomposition.md
+│  ├─ planning-state.md
+│  ├─ context-engineering.md
+│  ├─ prompt-strategy.md
+│  ├─ planning-principles.md
+│  ├─ agent-evolution.md
 │  ├─ planner-details.md
 │  ├─ project-scale-planning.md
 │  ├─ machine-schema.md
@@ -118,18 +129,18 @@ parallel-subagent-planner/
 
 ---
 
-## Roadmap Summary
+## Roadmap & Release Milestone (v1.0.0 Complete)
 
 | Version | Feature | Layer | Status |
 | --- | --- | --- | --- |
 | **v0.3.0** | Planning Protocol (Task/Project Scale Gate, Wave Scheduling, Machine Schema v1.0, Long-Term Candidate) | Planner | Released |
-| **v0.4.0** | Decomposition Intelligence (Vertical vs Horizontal Split, 6 Lane Quality Criteria, Machine Schema v1.1) | Planner | **Current** |
-| **v0.5.0** | Planning State Awareness (Incremental execution state understanding & frontier re-calculation) | State | Upcoming |
-| **v0.6.0** | Context Harness (Context Budget Engineering & `ignore_scope` Noise Boundaries) | Context | Upcoming |
-| **v0.7.0** | Prompt Specialization (Role-tailored templates: Explorer, Implementer, Reviewer, Migrator) | Policy | Upcoming |
-| **v0.8.0** | Planning Principles (Formalized planning principles) | Policy | Upcoming |
-| **v0.9.0** | Agent Evolution (Candidate quality filtering & full lifecycle management) | Memory | Upcoming |
-| **v1.0.0** | Agent Planning Harness Skill (Mature Harness Intelligence Layer) | All | Vision |
+| **v0.4.0** | Decomposition Intelligence (Vertical vs Horizontal Split, 6 Lane Quality Criteria, Machine Schema v1.1) | Planner | Released |
+| **v0.5.0** | Planning State Awareness (Incremental execution state understanding & frontier re-calculation, Schema v1.2) | State | Released |
+| **v0.6.0** | Context Harness (Context Budget Engineering & `ignore_scope` Noise Boundaries, Schema v1.3) | Context | Released |
+| **v0.7.0** | Prompt Specialization (Role-tailored templates: Explorer, Implementer, Reviewer, Migrator, Schema v1.4) | Policy | Released |
+| **v0.8.0** | Planning Principles (Formalized 5 senior-engineering principles, Schema v1.5) | Policy | Released |
+| **v0.9.0** | Agent Evolution (5-stage lifecycle, 4 quality filters: Frequency/Stability/Boundary/Reuse, Schema v1.6) | Memory | Released |
+| **v1.0.0** | Agent Planning Harness Skill (Mature Harness Intelligence Stack) | All Layers | **v1.0.0 Milestone** |
 
 For detailed roadmap descriptions, see [references/roadmap.md](references/roadmap.md).
 

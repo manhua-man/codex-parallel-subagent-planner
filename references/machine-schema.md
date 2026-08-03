@@ -1,6 +1,6 @@
 # Machine Plan Output Protocol
 
-This reference defines the Machine Plan Output Protocol format (`schema_version: "1.3"`).
+This reference defines the Machine Plan Output Protocol format (`schema_version: "1.4"`).
 
 ## Purpose
 
@@ -9,21 +9,22 @@ The Machine Plan Output Protocol allows `parallel-subagent-planner` to export ex
 ## Protocol Boundaries & Versioning Policy
 
 ### Protocol Boundaries
-- **Included**: Task/Project scale decision, split gate rationale, split strategy (`vertical | horizontal | hybrid`), planning state awareness, context budget (`global_constraints`, `read_scope`, `write_scope`, `ignore_scope`), shared contracts & contract owners, lane boundaries, read/write scopes, lane dependencies, lane quality audits, parallel frontier waves, integration instructions, and long-term agent candidate recommendations.
+- **Included**: Task/Project scale decision, split gate rationale, split strategy (`vertical | horizontal | hybrid`), planning state awareness, context budget, prompt specialization (`prompt_spec`), shared contracts & contract owners, lane boundaries, read/write scopes, lane dependencies, lane quality audits, parallel frontier waves, integration instructions, and long-term agent candidate recommendations.
 - **Excluded**: Process IDs (PIDs), thread handles, token usage counters, wall-clock execution timers, or platform-specific runtime memory states. Execution status monitoring remains owned by the active host session.
 
 ### Versioning Policy
-- **v1.3 Update**: Added optional `context` object (`global_constraints`, `read_scope`, `write_scope`, `ignore_scope`). Fully backward compatible with `1.0`, `1.1`, and `1.2` parsers.
+- **v1.4 Update**: Added optional `prompt_spec` under `lanes` (`lane_role`, `template_id`). Fully backward compatible with `1.0`-`1.3` parsers.
+- **v1.3 Update**: Added optional `context` object (`global_constraints`, `read_scope`, `write_scope`, `ignore_scope`).
 - **v1.2 Update**: Added optional `planning_state` object under root schema.
 - **v1.1 Update**: Added optional `split_strategy` under `decision` and `lane_quality` under `lanes`.
-- **Minor Upgrades (`1.0` -> `1.3`)**: New fields are introduced as optional properties. Existing core fields (`mode`, `decision`, `contracts`, `lanes`, `frontier`) remain backward compatible so downstream parsers never break.
+- **Minor Upgrades (`1.0` -> `1.4`)**: New fields are introduced as optional properties. Existing core fields (`mode`, `decision`, `contracts`, `lanes`, `frontier`) remain backward compatible so downstream parsers never break.
 - **Major Upgrades (`1.0` -> `2.0`)**: Reserved exclusively for breaking changes to required top-level plan structures.
 
-## Top-Level Schema Fields (v1.3)
+## Top-Level Schema Fields (v1.4)
 
 ```json
 {
-  "schema_version": "1.3",
+  "schema_version": "1.4",
   "mode": "task | project",
   "decision": {
     "split": true,
@@ -68,6 +69,10 @@ The Machine Plan Output Protocol allows `parallel-subagent-planner` to export ex
         "bounded_scope": true,
         "independent_progress": true,
         "verifiable_acceptance": true
+      },
+      "prompt_spec": {
+        "lane_role": "explorer | implementer | reviewer | migrator | default",
+        "template_id": "prompt-strategy#explorer"
       }
     }
   ],

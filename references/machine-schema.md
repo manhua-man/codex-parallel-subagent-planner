@@ -1,6 +1,6 @@
 # Machine Plan Output Protocol
 
-This reference defines the Machine Plan Output Protocol format (`schema_version: "1.4"`).
+This reference defines the Machine Plan Output Protocol format (`schema_version: "1.5"`).
 
 ## Purpose
 
@@ -9,27 +9,34 @@ The Machine Plan Output Protocol allows `parallel-subagent-planner` to export ex
 ## Protocol Boundaries & Versioning Policy
 
 ### Protocol Boundaries
-- **Included**: Task/Project scale decision, split gate rationale, split strategy (`vertical | horizontal | hybrid`), planning state awareness, context budget, prompt specialization (`prompt_spec`), shared contracts & contract owners, lane boundaries, read/write scopes, lane dependencies, lane quality audits, parallel frontier waves, integration instructions, and long-term agent candidate recommendations.
+- **Included**: Task/Project scale decision, split gate rationale, split strategy (`vertical | horizontal | hybrid`), planning principles audit, planning state awareness, context budget, prompt specialization, shared contracts & contract owners, lane boundaries, read/write scopes, lane dependencies, lane quality audits, parallel frontier waves, integration instructions, and long-term agent candidate recommendations.
 - **Excluded**: Process IDs (PIDs), thread handles, token usage counters, wall-clock execution timers, or platform-specific runtime memory states. Execution status monitoring remains owned by the active host session.
 
 ### Versioning Policy
-- **v1.4 Update**: Added optional `prompt_spec` under `lanes` (`lane_role`, `template_id`). Fully backward compatible with `1.0`-`1.3` parsers.
+- **v1.5 Update**: Added optional `planning_principles` object (`minimal_lanes`, `single_contract_owner`, `exploration_first`, `main_thread_integration`). Fully backward compatible with `1.0`-`1.4` parsers.
+- **v1.4 Update**: Added optional `prompt_spec` under `lanes` (`lane_role`, `template_id`).
 - **v1.3 Update**: Added optional `context` object (`global_constraints`, `read_scope`, `write_scope`, `ignore_scope`).
 - **v1.2 Update**: Added optional `planning_state` object under root schema.
 - **v1.1 Update**: Added optional `split_strategy` under `decision` and `lane_quality` under `lanes`.
-- **Minor Upgrades (`1.0` -> `1.4`)**: New fields are introduced as optional properties. Existing core fields (`mode`, `decision`, `contracts`, `lanes`, `frontier`) remain backward compatible so downstream parsers never break.
+- **Minor Upgrades (`1.0` -> `1.5`)**: New fields are introduced as optional properties. Existing core fields (`mode`, `decision`, `contracts`, `lanes`, `frontier`) remain backward compatible so downstream parsers never break.
 - **Major Upgrades (`1.0` -> `2.0`)**: Reserved exclusively for breaking changes to required top-level plan structures.
 
-## Top-Level Schema Fields (v1.4)
+## Top-Level Schema Fields (v1.5)
 
 ```json
 {
-  "schema_version": "1.4",
+  "schema_version": "1.5",
   "mode": "task | project",
   "decision": {
     "split": true,
     "reason": "Two independent feature capabilities have disjoint write scopes.",
     "split_strategy": "vertical | horizontal | hybrid"
+  },
+  "planning_principles": {
+    "minimal_lanes": true,
+    "single_contract_owner": true,
+    "exploration_first": true,
+    "main_thread_integration": true
   },
   "planning_state": {
     "completed_lanes": ["auth-api-lane"],

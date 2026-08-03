@@ -14,7 +14,7 @@
   "properties": {
     "schema_version": {
       "type": "string",
-      "enum": ["1.0", "1.1", "1.2", "1.3", "1.4"]
+      "enum": ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5"]
     },
     "mode": {
       "type": "string",
@@ -35,6 +35,16 @@
           "type": "string",
           "enum": ["vertical", "horizontal", "hybrid", "none"]
         }
+      }
+    },
+    "planning_principles": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "minimal_lanes": { "type": "boolean" },
+        "single_contract_owner": { "type": "boolean" },
+        "exploration_first": { "type": "boolean" },
+        "main_thread_integration": { "type": "boolean" }
       }
     },
     "planning_state": {

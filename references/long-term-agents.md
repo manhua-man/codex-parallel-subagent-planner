@@ -6,13 +6,14 @@ Use this reference when evaluating whether a completed subagent role qualifies a
 
 Long-term custom agents are persistent, named agent roles defined in official Codex `.toml` template format. A persistent agent spec is justified only when it captures a recurring, bounded stewardship or quality-review responsibility with stable, objective verification.
 
-### Strict Anti-Noise & Security Rules
+### Strict Anti-Noise & Output Balance Rules
 1. **Max 1 Candidate Per Run**: Never propose or report more than one long-term agent candidate in a single execution run.
-2. **Explicit User Approval Required**: Never create, write, or modify a custom agent `.toml` file without explicit user confirmation.
+2. **Compact Output Notification Rule**: In default `promotion_check: silent` mode, append a 1-line lightweight notification at the end of Compact output ONLY when a candidate has `confidence: high`. For low or medium confidence candidates, remain completely silent in Compact mode to prevent output noise.
+3. **Explicit User Approval Required**: Never create, write, or modify a custom agent `.toml` file without explicit user confirmation.
 
 ### Promotion Check Settings (`promotion_check`)
 - `promotion_check: off` — do not evaluate candidate promotion.
-- `promotion_check: silent` (default) — evaluate candidates internally; report a candidate only when a high-confidence recurring role exists.
+- `promotion_check: silent` (default) — evaluate candidates internally; report a 1-line note in Compact mode only for `high` confidence candidates.
 - `promotion_check: ask` — explicitly prompt the user whenever a qualified candidate is identified after integration.
 
 ## Promotion Criteria
@@ -55,9 +56,13 @@ Do not modify contract specifications without explicit user approval.
 
 ## Reporting Format
 
-When reporting a candidate in `Full` or `ask` mode (only when a high-confidence candidate exists):
+When reporting a high-confidence candidate in Compact (1 line) or Full mode:
 
 ```text
+Compact (1-line lightweight note):
+Long-term candidate: api_contract_reviewer — recurring review role. Creation requires user approval.
+
+Full Mode:
 Long-term agent candidate identified:
 - api_contract_reviewer — maintains API backward compatibility and route contract invariants.
 

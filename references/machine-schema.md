@@ -6,12 +6,15 @@ This reference defines the Machine Plan Output Protocol format (`schema_version:
 
 The Machine Plan Output Protocol allows `parallel-subagent-planner` to export execution plans as structured, versioned JSON data. Downstream tools, custom orchestrators, CI scripts, or human operators can consume this plan without parsing conversational Markdown text.
 
-## Protocol Boundaries
+## Protocol Boundaries & Versioning Policy
 
-The protocol defines the **Plan Contract**, NOT an execution runtime state database:
-
+### Protocol Boundaries
 - **Included**: Task/Project scale decision, split gate rationale, shared contracts & contract owners, lane boundaries, read/write scopes, lane dependencies, parallel frontier waves, integration instructions, and long-term agent candidate recommendations.
 - **Excluded**: Process IDs (PIDs), thread handles, token usage counters, wall-clock execution timers, or platform-specific runtime memory states. Execution status monitoring remains owned by the active host session.
+
+### Versioning Policy
+- **Minor Version Upgrades (`1.0` -> `1.1`)**: New fields (e.g., `planning_state` in v0.5, `context` budget in v0.6) are introduced as optional properties. Existing core fields (`mode`, `decision`, `contracts`, `lanes`, `frontier`) remain backward compatible so downstream parsers never break.
+- **Major Version Upgrades (`1.0` -> `2.0`)**: Reserved exclusively for breaking changes to required top-level plan structures.
 
 ## Top-Level Schema Fields
 

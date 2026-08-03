@@ -85,15 +85,15 @@
   },
   {
     "id": "03-two-write-workers",
-    "title": "Two Independent Write Workers",
+    "title": "Two Independent Write Workers with Data Dependency",
     "input": "Split if useful: update CLI help text in src/cli/help.ts, and update docs/usage.md to match new help text. Run lane-local checks only.",
     "assert": {
       "mode": "task",
-      "launched_write_lane_count": 2,
+      "launched_write_lane_count": 1,
       "launched_explorer_lane_count": 0,
-      "must_contain_held_reason": ["safe"],
+      "must_contain_held_reason": ["safe", "dependency"],
       "forbidden": ["parallel_write_overlap"],
-      "frontier": ["cli-help-worker", "docs-usage-worker"]
+      "frontier": ["cli-help-worker"]
     },
     "output": {
       "schema_version": 1,
@@ -108,7 +108,7 @@
         {
           "id": "cli-help-worker",
           "agent_type": "worker",
-          "model_profile": "deep",
+          "model_profile": "balanced",
           "reasoning_profile": "medium",
           "depends_on": [],
           "read_scope": ["src/cli/help.ts"],
@@ -118,25 +118,25 @@
           "state": "ready",
           "held_reason": "safe",
           "launch_score": 7.5,
-          "score_reasons": ["Disjoint write scope", "Lane-local checks pass"]
+          "score_reasons": ["Disjoint write scope", "Unblocks docs usage worker"]
         },
         {
           "id": "docs-usage-worker",
           "agent_type": "worker",
-          "model_profile": "balanced",
+          "model_profile": "fast",
           "reasoning_profile": "low",
-          "depends_on": [],
+          "depends_on": ["cli-help-worker"],
           "read_scope": ["docs/usage.md", "src/cli/help.ts"],
           "write_scope": ["docs/usage.md"],
           "acceptance": ["npm run test:docs"],
           "deliverable": "Updated usage documentation matching CLI text",
-          "state": "ready",
-          "held_reason": "safe",
-          "launch_score": 6.0,
-          "score_reasons": ["Disjoint write scope", "Low risk doc update"]
+          "state": "blocked",
+          "held_reason": "dependency",
+          "launch_score": 0.0,
+          "score_reasons": ["Held waiting for CLI help worker text output"]
         }
       ],
-      "frontier": ["cli-help-worker", "docs-usage-worker"]
+      "frontier": ["cli-help-worker"]
     }
   },
   {

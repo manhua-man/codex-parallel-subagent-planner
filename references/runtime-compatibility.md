@@ -17,13 +17,13 @@ If a host lacks `explicit_model` or `explicit_reasoning` on a specific spawn too
 
 ## Model Profiles Mapping
 
-The planner allocates models using semantic profiles (`model_profile`). The compatibility layer maps these profiles to concrete host model identifiers.
+The planner allocates models using semantic profiles (`model_profile`). The compatibility layer maps these profiles to concrete host model identifiers based on official Codex guidance:
 
-| Profile | Capability Profile | Default Model Mapping | Usage Guidance |
+| Profile | Capability Profile | Default Model Mapping | Workload Guidance |
 |---|---|---|---|
-| `deep` | High reasoning & complex coding | `gpt-5.6-sol` | Tightly scoped implementation, complex logic, mechanical transformations, concrete tests |
-| `balanced` | Balanced capability & cost | `gpt-5.6-terra` | Cross-module architecture, shared contracts, risky integration, ambiguous root cause |
-| `fast` | Maximum speed & lowest cost | `gpt-5.6-luna` | Read-only discovery, evidence synthesis, independent verification, test design |
+| `deep` | Flagship reasoning & complex coding | `gpt-5.6-sol` | Ambiguous root cause, security audits, complex shared contract design, high-risk cross-module integration, complex planning & final review |
+| `balanced` | General capability & efficiency | `gpt-5.6-terra` | Routine module implementation, bounded refactoring, standard feature development, integrated verification |
+| `fast` | Maximum speed & lowest cost | `gpt-5.6-luna` | Read-only scans, information extraction, deterministic transformations, narrow low-risk tasks |
 
 ### Model Override
 
@@ -42,12 +42,14 @@ Host-specific reasoning parameters (such as `thinking` or `reasoning_effort`) ar
 
 ## Host Adapters Matrix
 
-| Host Environment | Isolation Adapter | Model/Reasoning Adapter | Context Brief |
+| Host Environment | Thread Adapter | Model/Reasoning Adapter | Context Brief |
 |---|---|---|---|
 | Codex CLI | Isolated subagent thread | Command flags / spawn options | Compact Context Brief |
 | Codex Desktop | Project thread / `create_thread` | `model` + `thinking` fields | Compact Context Brief |
 | Generic Spawn | Parent session child | Fallback to main thread if routing unexposed | Compact Context Brief |
 
-## Model Family Substitution
+## Custom Agent Storage Paths
 
-When model families are updated in future runtime releases, update this mapping table (`references/runtime-compatibility.md`) rather than modifying `SKILL.md`, fixtures, or prompt templates.
+Official Codex custom agent paths:
+- Personal custom agents: `~/.codex/agents/<agent>.toml`
+- Project custom agents: `.codex/agents/<agent>.toml`

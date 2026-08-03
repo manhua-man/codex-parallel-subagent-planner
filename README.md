@@ -2,17 +2,20 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-`parallel-subagent-planner` is a **Planner Contract (v0.2.0)** execution-parallelism skill for Codex. It chooses between a lightweight task split and project-scale module planning, validates structured plans against JSON schemas and safety invariants, and generates minimal child prompts.
+`parallel-subagent-planner` is a **Planner Contract (v0.2.0)** execution-parallelism skill for Codex. It chooses between a lightweight task split and project-scale module planning, validates structured plans against compiled JSON schemas and 9 safety invariants, and generates minimal child prompts.
 
 ## Key Capabilities (v0.2.0)
 
-- **Planner Contract & Output Schema**: Generates structured plan JSON conforming to `schema/planner-plan.schema.json`.
-- **Deterministic Invariant Validator**: Enforces 8 safety invariants (disjoint write scopes, satisfied dependencies, acyclic graph, contract single owner, non-empty acceptance, read-only enforcement, concurrency budget, held reason consistency).
-- **Executable Behavioral Evals**: Automated test suite (`evals/cases.json`) with an `Unsafe Launch Rate = 0` target assertion.
+- **Planner Contract & Compiled Standalone Schema**: Generates structured plan JSON conforming to `schema/planner-plan.schema.json`, validated at 100% schema parity via standalone code validator.
+- **Deterministic Invariant Validator**: Enforces 9 safety invariants (disjoint write scopes, write-read race condition prevention, satisfied dependencies, acyclic graph, contract single owner, non-empty acceptance, read-only enforcement, concurrency budget, state/held consistency).
+- **Executable Behavioral Evals**: Automated test suite (`evals/cases.json`) with an **`Unsafe Launch Rate = 0`** target assertion.
 - **Model Profiles & Compatibility Layer**: Decouples model names via semantic profiles (`deep | balanced | fast`) mapped through `references/runtime-compatibility.md`.
+  - `deep` (`gpt-5.6-sol`): Flagship model for ambiguous root cause, security audits, complex contracts, high-risk integration.
+  - `balanced` (`gpt-5.6-terra`): General-purpose model for routine implementation, bounded refactoring, standard development.
+  - `fast` (`gpt-5.6-luna`): Read-only scans, information extraction, deterministic transformations.
 - **Value & Cost-Aware Scheduling**: Priority scoring (`launch_score` + `score_reasons`) and cost budget enforcement.
 - **Output Modes**: Supports `Compact` (human summary), `Explain` (diagnostic view), and `Machine` (strict JSON output).
-- **TOML Agent Specification**: Persistent agent specs use standard Codex `.toml` templates with a `promotion_check: silent` default policy.
+- **TOML Custom Agent Specification**: Persistent agent specs use standard Codex `.toml` templates (`~/.codex/agents/<agent>.toml` and `.codex/agents/<agent>.toml`) with a `promotion_check: silent` default policy.
 
 ## Operating Modes
 
@@ -27,16 +30,14 @@
 
 ```bash
 # Personal install path: $HOME/.agents/skills/parallel-subagent-planner
-mkdir -p "$HOME/.agents/skills/parallel-subagent-planner"
-cp -r . "$HOME/.agents/skills/parallel-subagent-planner"
+node .tools/install-skill.js
 ```
 
-### Project Workspace Installation
+### Target Project Workspace Installation
 
 ```bash
-# Project install path: <repo>/.agents/skills/parallel-subagent-planner
-mkdir -p .agents/skills/parallel-subagent-planner
-cp -r . .agents/skills/parallel-subagent-planner
+# Target path: <target-repo>/.agents/skills/parallel-subagent-planner
+node .tools/install-skill.js /path/to/target-repo
 ```
 
 ### Plugin Distribution
@@ -64,7 +65,7 @@ Launch status
 - Held: Export flow worker, because it depends on explorer findings
 
 Integration note
-Start with the audit, then launch or handle the worker only after the current behavior and acceptance checks are concrete.
+Start with the audit, then launch or handle the worker only after current behavior and acceptance checks are concrete.
 ```
 
 ### `Machine` Output (JSON Schema)
@@ -83,7 +84,7 @@ Start with the audit, then launch or handle the worker only after the current be
     {
       "id": "cli-help-worker",
       "agent_type": "worker",
-      "model_profile": "deep",
+      "model_profile": "balanced",
       "reasoning_profile": "medium",
       "depends_on": [],
       "read_scope": ["src/cli/help.ts"],
@@ -113,11 +114,15 @@ parallel-subagent-planner/
 ├─ examples/
 │  ├─ fixtures.md
 │  └─ plans/
-├─ scripts/
+├─ test/
+│  └─ validator.test.js
+├─ .tools/
 │  ├─ validate-plan.js
+│  ├─ schema-validator.js
 │  ├─ run-evals.js
 │  ├─ check-drift.js
-│  └─ package-plugin.js
+│  ├─ package-plugin.js
+│  └─ install-skill.js
 ├─ references/
 │  ├─ benchmarks.md
 │  ├─ long-term-agents.md
@@ -138,13 +143,13 @@ parallel-subagent-planner/
 
 ## Automated Verification
 
-Run the full automated test suite:
+Run the full zero-dependency automated test suite:
 
 ```bash
 npm test
 ```
 
-Includes static integrity checking, schema validation, and behavioral evals.
+Includes static integrity checking, standalone compiled schema validation, validator unit tests, and real behavioral evals.
 
 ## License
 

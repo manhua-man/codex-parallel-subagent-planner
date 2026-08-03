@@ -25,21 +25,19 @@ Instead of hardcoding model names inside core planning rules, the planner uses s
 
 | Model Profile | Default Model Mapping | Recommended Workloads |
 |---|---|---|
-| `deep` | `gpt-5.6-sol` | Flagship for complex coding, tightly scoped refactoring, mechanical transformations, concrete unit tests |
-| `balanced` | `gpt-5.6-terra` | Balanced capability & cost for cross-module architecture, shared contracts, risky integration |
-| `fast` | `gpt-5.6-luna` | Maximum speed & lowest cost for read-only discovery, evidence synthesis, test design, bounded analysis |
+| `deep` | `gpt-5.6-sol` | Flagship model for ambiguous root cause, security audits, complex shared contracts, high-risk cross-module integration, complex planning & final review |
+| `balanced` | `gpt-5.6-terra` | General-purpose model for routine module implementation, bounded refactoring, standard feature development, integrated verification |
+| `fast` | `gpt-5.6-luna` | Fast/cheap model for read-only scans, information extraction, deterministic transformations, narrow low-risk tasks |
 
 ### Model Override
 
 Child lanes may pass an explicit `model_override` string to specify a custom model name when required by specialized environments.
 
-## Reasoning Profiles
+## Custom Agent Specification Paths
 
-Child lanes specify `reasoning_profile`:
-- `auto`: Host runtime default.
-- `low`: Mechanical edits, deterministic scans.
-- `medium`: Bounded implementation or verification.
-- `high`: Ambiguous cross-boundary work.
+Persistent custom agents use official Codex `.toml` template files:
+- Personal custom agents: `~/.codex/agents/<agent>.toml`
+- Project custom agents: `.codex/agents/<agent>.toml`
 
 ## Codex Host Adapter Matrix
 

@@ -7,73 +7,47 @@ Use this file when deep lane planning, budget-aware frontier scoring, or diagnos
 When a plan, held lane, or diagnostic output needs explicit bookkeeping, track these fields:
 
 - `id`: unique string identifier for the lane
-- `agent_type`: `explorer`, `worker`, or `default`
+- `agent_type`: `explorer`, `worker`, `verification`, `cleanup`, or `default`
 - `model_profile`: `deep`, `balanced`, or `fast`
 - `model_override`: `null` or explicit model string
 - `reasoning_profile`: `auto`, `low`, `medium`, `high`
-- `read_scope`: array of glob patterns / file paths to inspect
+- `read_scope`: array of glob patterns / file paths to inspect (`dir/**` or `path/to/file`)
 - `write_scope`: array of glob patterns / file paths allowed for edits (empty for read-only)
 - `deliverable`: expected artifact or handoff summary
 - `acceptance`: array of lane-local pass/fail checks
 - `depends_on`: array of prerequisite lane IDs or contract IDs
 - `state`: `ready`, `running`, `blocked`, `integrated`, `done`, or `held`
-- `held_reason`: `safe`, `overlap`, `blocked`, `dependency`, `contract`, `unclear_acceptance`, `unclear_scope`, or `cost`
+- `held_reason`: `safe`, `overlap`, `blocked`, `dependency`, `contract`, `unclear_scope`, `unclear_acceptance`, `verification_failed`, or `cost`
 - `launch_score`: numerical priority score
 - `score_reasons`: array of explainable score rationales
 
 Launch only when `state: ready`, `held_reason: safe`, and the lane passes the budget and safety validator.
 
-## Model And Reasoning Allocation
+## Model Profile Task Mapping
 
 Model selection is managed via semantic profiles mapped by `references/runtime-compatibility.md`:
 
-| Profile | Default Model Mapping | Usage Guidance |
+| Profile | Default Model Mapping | Workload & Task Shape Guidance |
 | --- | --- | --- |
-| `deep` | `gpt-5.6-sol` | Tightly scoped implementation, mechanical transformations, disjoint writes, concrete tests |
-| `balanced` | `gpt-5.6-terra` | Cross-module architecture, shared contracts, risky integration, ambiguous root cause |
-| `fast` | `gpt-5.6-luna` | Read-only discovery, evidence synthesis, independent verification, test design |
+| `deep` | `gpt-5.6-sol` | Flagship for ambiguous root cause, security audits, complex shared contracts, high-risk cross-module integration, multi-step planning, and final review |
+| `balanced` | `gpt-5.6-terra` | General-purpose implementation, routine refactoring, standard feature development, and integrated verification |
+| `fast` | `gpt-5.6-luna` | Read-only scans, information extraction, deterministic transformations, and narrow low-risk tasks |
 
 Reasoning profile guidance:
 - `low`: deterministic scans, mechanical edits.
 - `medium`: bounded implementation or verification.
-- `high`: ambiguous cross-boundary work.
+- `high`: ambiguous cross-boundary work or complex shared contract design.
 
-## Budgeting & Priority Scoring
+## Scope Syntax & Collision Rules
 
-The planner enforces resource limits:
+Scope paths must follow strict syntax:
+- Exact file paths: `src/api/index.ts`
+- Subtree globs: `src/api/**`
+- Prohibited: relative parents (`..`), absolute paths, double slashes (`//`), arbitrary wildcards (`*`) outside `/**`.
 
-```yaml
-budget:
-  max_concurrency: 3
-  max_write_lanes: 2
-  cost_profile: cheap | balanced | quality
-  write_policy: single_writer | disjoint_only
-```
-
-Priority score calculation:
-
-```text
-launch_score = critical_path_weight + unblock_value + risk_reduction + wall_clock_saved - integration_cost - context_cost
-```
-
-Score explanation example:
-```yaml
-launch_score: 8.5
-score_reasons:
-  - unblocks 2 downstream implementation lanes
-  - read-only scope with zero write collision risk
-  - deterministic local test suite available
-```
-
-## Hold Rules
-
-- `overlap`: write scopes collide or overlap across lanes.
-- `blocked`: lane depends on unfinished explorer findings or unverified handoff.
-- `dependency`: lane depends on un-integrated upstream lanes.
-- `contract`: lane requires unassigned or unaccepted shared contracts.
-- `unclear_acceptance`: pass/fail conditions are not concrete.
-- `unclear_scope`: target files or boundaries cannot be bounded safely.
-- `safe`: lane is independent, safe, and ready to launch.
+Frontier safety collision rules:
+- `write_scope(A) ∩ write_scope(B) == ∅` (No write-write overlap)
+- `write_scope(A) ∩ read_scope(B) == ∅` (No write-read race condition, unless reading frozen contract)
 
 ## Output Modes
 

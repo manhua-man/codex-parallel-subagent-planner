@@ -44,7 +44,11 @@ Promotion check modes:
 
 Recommended promotion applies only to recurring, bounded steward/verifier roles with objective checks. Do not promote temporary task workers or broad coordinators.
 
-When approved by the user, persistent agent definitions use Codex `.toml` format (`.codex/agents/<agent>.toml` or `$HOME/.agents/<agent>.toml`). Never create or write agent `.toml` files without explicit user approval. Details live in [references/long-term-agents.md](references/long-term-agents.md).
+When approved by the user, persistent custom agent definitions use official Codex `.toml` format:
+- Personal custom agents: `~/.codex/agents/<agent>.toml`
+- Project custom agents: `.codex/agents/<agent>.toml`
+
+Never create or write custom agent `.toml` files without explicit user approval. Details live in [references/long-term-agents.md](references/long-term-agents.md).
 
 ## Fast Gate
 
@@ -59,7 +63,7 @@ No strong signal in task mode means `Not split` and main-thread work. In project
 
 ## Launch & Capability Protocol
 
-When launching, use the minimum viable lane count. Multiple write-enabled workers are allowed when workstreams are genuinely independent and the expected benefit justifies context cost. In project mode, launch only the current frontier; keep later waves held until dependencies and contracts pass.
+When launching, use the minimum viable lane count. Multiple write-enabled workers are allowed when workstreams are genuinely independent and expected benefit justifies context cost. In project mode, launch only the current frontier; keep later waves held until dependencies and contracts pass.
 
 The planner expresses requirements through generic host capabilities:
 
@@ -77,10 +81,10 @@ Child lane profiles:
 - `model_profile`: `deep` | `balanced` | `fast` (with optional `model_override`)
 - `reasoning_profile`: `auto` | `low` | `medium` | `high`
 
-Default profile mapping baseline:
-- `fast`: read-only discovery, evidence synthesis, independent verification, test design, bounded analysis (`gpt-5.6-luna`).
-- `balanced`: cross-module architecture, shared contracts, risky integration, security investigation, ambiguous root cause (`gpt-5.6-terra`).
-- `deep`: tightly scoped implementation or mechanical transformation with disjoint writes and concrete lane-local tests (`gpt-5.6-sol`).
+Default profile task mapping baseline (re-aligned to official guidance):
+- `deep`: flagship model (`gpt-5.6-sol`) for ambiguous root cause, security audits, complex shared contracts, high-risk cross-module integration, complex multi-step planning, and final review.
+- `balanced`: general-purpose model (`gpt-5.6-terra`) for routine module implementation, bounded refactoring, standard feature development, and integrated verification.
+- `fast`: fast/cheap model (`gpt-5.6-luna`) for read-only scans, information extraction, deterministic transformations, and narrow low-risk tasks.
 
 Child prompts must be short and non-recursive:
 
@@ -131,4 +135,4 @@ Record human-explainable `score_reasons` for each launch decision.
 
 ## Hold Or Escalate
 
-Do not launch a worker when write scopes overlap, work is small, a worker may need to touch another lane's files, it depends on unfinished investigation or a shared contract, acceptance is unclear, or scope cannot be bounded. Read [references/planner-details.md](references/planner-details.md) for detailed lane mechanics.
+Do not launch a worker when write scopes overlap, write and read scopes conflict, work is small, a worker may need to touch another lane's files, it depends on unfinished investigation or a shared contract, acceptance is unclear, or scope cannot be bounded. Read [references/planner-details.md](references/planner-details.md) for detailed lane mechanics.

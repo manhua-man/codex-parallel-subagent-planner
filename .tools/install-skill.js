@@ -1,6 +1,6 @@
 /**
- * Zero-Dependency Safe Skill Installer for Parallel Subagent Planner (v0.2.0)
- * Safely installs the skill to user ($HOME/.agents/skills) or project (<target-repo>/.agents/skills).
+ * Zero-Dependency Safe Minimal Runtime Skill Installer for Parallel Subagent Planner (v0.2.0)
+ * Safely installs ONLY runtime skill assets to user ($HOME/.agents/skills) or project (<target-repo>/.agents/skills).
  */
 
 const fs = require('fs');
@@ -14,7 +14,7 @@ function installSkill() {
   if (!targetRepo || targetRepo === '--personal') {
     const home = process.env.HOME || process.env.USERPROFILE;
     destDir = path.join(home, '.agents/skills/parallel-subagent-planner');
-    console.log(`\n--- Installing Personal Skill to: ${destDir} ---\n`);
+    console.log(`\n--- Installing Minimal Personal Skill to: ${destDir} ---\n`);
   } else {
     const targetAbs = path.resolve(process.cwd(), targetRepo);
     if (targetAbs === rootDir) {
@@ -22,19 +22,26 @@ function installSkill() {
       process.exit(1);
     }
     destDir = path.join(targetAbs, '.agents/skills/parallel-subagent-planner');
-    console.log(`\n--- Installing Project Skill to: ${destDir} ---\n`);
+    console.log(`\n--- Installing Minimal Project Skill to: ${destDir} ---\n`);
   }
 
-  const excludeDirs = new Set(['.git', 'dist', 'node_modules', '.tools', 'scratch']);
+  // Runtime Skill Assets to install
+  const runtimeItems = [
+    'SKILL.md',
+    'opsx-parallel.md',
+    'schema',
+    'references',
+    'docs',
+    'examples'
+  ];
 
-  function copyRecursive(src, dest) {
+  function copyItem(src, dest) {
+    if (!fs.existsSync(src)) return;
     const stat = fs.statSync(src);
     if (stat.isDirectory()) {
-      const base = path.basename(src);
-      if (excludeDirs.has(base)) return;
       fs.mkdirSync(dest, { recursive: true });
       fs.readdirSync(src).forEach(child => {
-        copyRecursive(path.join(src, child), path.join(dest, child));
+        copyItem(path.join(src, child), path.join(dest, child));
       });
     } else {
       fs.mkdirSync(path.dirname(dest), { recursive: true });
@@ -42,8 +49,13 @@ function installSkill() {
     }
   }
 
-  copyRecursive(rootDir, destDir);
-  console.log(`✓ Skill successfully installed to: ${destDir}`);
+  runtimeItems.forEach(item => {
+    const src = path.join(rootDir, item);
+    const dest = path.join(destDir, item);
+    copyItem(src, dest);
+  });
+
+  console.log(`✓ Minimal Runtime Skill successfully installed to: ${destDir}`);
 }
 
 if (require.main === module) {

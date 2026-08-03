@@ -11,7 +11,7 @@ Long-term agents are rare. A persistent agent spec is justified only when it cap
 - `promotion_check: silent` (default) — evaluate candidates internally; list candidates only in `Full` / `Explain` mode or when requested
 - `promotion_check: ask` — prompt the user proactively whenever a high-confidence candidate exists
 
-Never create or write persistent agent files without explicit user approval.
+Never create or write persistent custom agent files without explicit user approval.
 
 ## Promotion Criteria
 
@@ -32,12 +32,12 @@ Do not promote when any are true:
 
 ## Storage Paths & Format
 
-Persistent agents use Codex `.toml` file format:
+Persistent custom agents use official Codex `.toml` file format:
 
-- Personal reusable agents: `$HOME/.agents/<agent>.toml` or `~/.codex/agents/<agent>.toml`
-- Project-private agents: `.codex/agents/<agent>.toml` or `.agents/<agent>.toml`
+- Personal custom agents: `~/.codex/agents/<agent>.toml`
+- Project custom agents: `.codex/agents/<agent>.toml`
 
-### Minimal Agent `.toml` Template
+### Minimal Custom Agent `.toml` Template
 
 ```toml
 name = "benchmark_fixture_steward"

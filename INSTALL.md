@@ -1,50 +1,56 @@
 # Installation Guide
 
-`parallel-subagent-planner` (v0.2.0) can be installed for personal use, included in a repository workspace, or packaged as a plugin.
+`parallel-subagent-planner` (v0.2.0) can be installed for personal use, included in a project workspace, or packaged as an official Codex Plugin.
+
+## Testing Before Installation
+
+Before installing, run the automated zero-dependency verification suite in the source repository:
+
+```bash
+npm test
+```
 
 ## Standard Installation Options
 
 ### Option A: Personal Skill Installation (Recommended)
 
-Install the skill for your user account so it is available across all projects:
+Install minimal runtime skill assets for your user account:
 
 ```bash
-# Target path: $HOME/.agents/skills/parallel-subagent-planner
+# Personal install path: $HOME/.agents/skills/parallel-subagent-planner
+node .tools/install-skill.js
+```
+
+Or manually copy runtime skill assets:
+
+```bash
 mkdir -p "$HOME/.agents/skills/parallel-subagent-planner"
-cp -r . "$HOME/.agents/skills/parallel-subagent-planner"
+cp -r SKILL.md opsx-parallel.md schema references docs examples "$HOME/.agents/skills/parallel-subagent-planner/"
 ```
 
-On Windows (PowerShell):
+### Option B: Target Project Workspace Installation
 
-```powershell
-New-Item -ItemType Directory -Force -Path "$HOME\.agents\skills\parallel-subagent-planner"
-Copy-Item -Recurse -Force .* "$HOME\.agents\skills\parallel-subagent-planner"
-```
-
-### Option B: Project Workspace Installation
-
-To share planner rules with all team members working in a specific repository:
+To share planner rules with team members in a target repository:
 
 ```bash
-# Target path: <repo>/.agents/skills/parallel-subagent-planner
-mkdir -p .agents/skills/parallel-subagent-planner
-cp -r . .agents/skills/parallel-subagent-planner
+# Target path: <target-repo>/.agents/skills/parallel-subagent-planner
+node .tools/install-skill.js /path/to/target-repo
 ```
 
-### Option C: Plugin Package Distribution
+Or manually copy runtime skill assets to the target repository:
 
-To package and distribute as a plugin bundle:
+```bash
+TARGET_REPO="/path/to/target-repo"
+mkdir -p "$TARGET_REPO/.agents/skills/parallel-subagent-planner"
+cp -r SKILL.md opsx-parallel.md schema references docs examples "$TARGET_REPO/.agents/skills/parallel-subagent-planner/"
+```
+
+### Option C: Official Plugin Package Distribution
+
+To package and distribute as an official Codex plugin bundle:
 
 ```bash
 npm run package:plugin
 ```
 
-The output bundle will be generated in `dist/plugin/` with `plugin-manifest.json`.
-
-## Verification
-
-After installation, verify skill integrity by running:
-
-```bash
-npm test
-```
+The plugin bundle is generated in `dist/plugin/` with manifest `.codex-plugin/plugin.json` and skills directory `skills/parallel-subagent-planner/`.

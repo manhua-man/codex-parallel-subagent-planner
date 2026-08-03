@@ -1,4 +1,4 @@
 interface:
-  display_name: "Parallel Subagents"
-  short_description: "Schedule safe Codex execution lanes and project waves."
-  default_prompt: "Use $parallel-subagent-planner to schedule safe Codex execution lanes from an accepted goal, map project dependencies when needed, and integrate each wave."
+  display_name: "Parallel Subagent Planner"
+  short_description: "Split Codex work into safe independent execution lanes."
+  default_prompt: "Use $parallel-subagent-planner to decide whether subagents help, launch only bounded independent lanes, hold coupled work, and return a compact integration plan."

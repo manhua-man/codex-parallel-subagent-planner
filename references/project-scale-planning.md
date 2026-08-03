@@ -1,68 +1,34 @@
 # Project-Scale Planning
 
-Load this reference only when the Scale Gate selects project mode.
+Use this guide when a goal spans multiple modules, services, packages, or testable capabilities, or involves building a complete product.
 
-## Objective
+## Execution Workflow
 
-Turn an accepted complete-software goal into an auditable execution dependency graph and launch the largest safe, worthwhile frontier. Consume existing requirements, architecture decisions, reviewed plans, and OpenSpec tasks as authoritative inputs. Do not plan only the module currently under discussion.
+1. **Discover Product Surface**: Inventory all packages, modules, routes, databases, and services within scope.
+2. **Build Module Matrix**: Map each module's capabilities, dependencies, read/write scopes, and acceptance criteria.
+3. **Assign Shared Contract Owners**: Assign exactly one owner lane per wave for each shared API, schema, router, or global config.
+4. **Compute Parallel Frontier**: Identify lanes whose dependencies and prerequisite contracts are fully satisfied (`done` or `integrated`).
+5. **Launch Wave**: Launch only ready frontier lanes within budget constraints. Hold dependent downstream modules.
+6. **Integrate & Replan**: After wave completion, integrate outputs, update module statuses, and recompute the next frontier.
 
-## 1. Discover The Product Surface
+## Module Matrix Template
 
-Read the smallest authoritative set that exposes the full in-scope product:
-
-- user brief, acceptance criteria, roadmap, or specification
-- repository/package tree and architecture docs
-- route, service, module, schema, and test registries
-- current worktree state and ownership boundaries
-
-If the product surface cannot be mapped cheaply, launch one read-only discovery lane (`fast` model profile). Its deliverable is the module graph, not implementation.
-
-## 2. Shared-Contract Ownership
-
-Assign every shared contract exactly one owner before parallel implementation starts. Typical shared contracts include:
-
-- package manifests and lockfiles
-- database schema and migrations
-- public API / DTO / type definitions
-- global route registries
-- design tokens and shared test fixtures
-
-Consumers may read an accepted contract but must not edit it concurrently. If the contract is unstable, assign a contract lane in Wave 0 and hold consumers.
-
-## 3. Budgeting & Value-Based Frontier Calculation
-
-Compute the parallel frontier by ranking ready modules using cost budgets and priority scores:
-
-```yaml
-budget:
-  max_concurrency: 3
-  max_write_lanes: 2
-  cost_profile: balanced
-```
-
-Priority score calculation:
+Track module work using these fields:
 
 ```text
-launch_score = critical_path_weight + unblock_value + risk_reduction + wall_clock_saved - integration_cost - context_cost
+- module: [name]
+  owns: [primary capability or service]
+  depends_on: [prerequisite modules or contract IDs]
+  shared_contracts: [contract IDs assigned or consumed]
+  read_scope: [dir/** or path/to/file]
+  write_scope: [dir/** or path/to/file]
+  acceptance: [checks]
+  state: ready | blocked | running | integrated | done | held
+  held_reason: safe | overlap | blocked | dependency | contract | unclear_scope | unclear_acceptance | verification_failed
 ```
 
-A module enters the ready frontier only when:
-- all `depends_on` modules and contracts are integrated (`state: done` or `integrated`)
-- its `write_scope` is disjoint from every other launched lane
-- its acceptance checks are lane-local and non-empty
-- `launch_score` ranks within `max_concurrency`
+## Discovery First Rule
 
-## 4. Wave Scheduling
-
-1. **Wave 0: Contracts & Skeletons** — shared interfaces, public API schema, migrations, routes.
-2. **Wave 1+: Implementation Frontiers** — independent modules whose dependencies are satisfied.
-3. **Integration Wave** — shared routing, manifests, and cross-module wiring.
-4. **Verification Wave** — cross-module E2E, visual, performance, and release-boundary checks.
-
-## 5. Schema Validation
-
-Project plans must conform to `schema/planner-plan.schema.json`. Ensure:
-- No cyclic dependencies in `lanes[].depends_on`.
-- Every shared contract in `contracts[]` has exactly one owner in `lanes[]`.
-- No two ready/launched lanes share overlapping `write_scope` elements.
-- `frontier[]` lists exactly the ready lanes selected for current wave launch.
+If the project architecture or module boundaries are unclear:
+- Launch ONE read-only discovery lane (`agent_type: explorer`, `write_scope: []`).
+- Hold all implementation workers until the discovery lane returns a verified module matrix and dependency graph.

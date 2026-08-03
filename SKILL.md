@@ -1,138 +1,101 @@
 ---
 name: parallel-subagent-planner
-description: Cost-aware Codex execution-parallelism planner for both bounded tasks and multi-module software work. Use to decide whether to launch safe subagents, discover execution modules and dependencies when an approved goal spans a complete app or several capabilities, schedule independent work in waves, validate structured plan safety against schemas, and send minimal child prompts. Do not use it as a substitute for product requirements, architecture or plan review, OpenSpec artifact management, or external coding-agent backend routing.
+description: >-
+  Plan safe Codex subagent execution for bounded coding tasks and multi-module
+  software work. Use when deciding whether parallel agents would help, splitting
+  an accepted implementation goal into independent lanes, mapping dependencies
+  and shared write boundaries, scheduling project work in waves, or generating
+  bounded non-recursive child prompts. Do not use it to define product
+  requirements, approve architecture, replace specification workflows, or route
+  work to external coding-agent backends.
 ---
 
 # Parallel Subagent Planner
 
-Default behavior: classify task scale first, then use the cheapest safe planning path. Keep bounded tasks on the fast split gate; build a module dependency graph for project-scale goals before choosing lanes.
+Decide whether subagents materially help, split accepted implementation work into bounded lanes, hold coupled work, and schedule multi-module projects in dependency-safe waves.
 
-## Scale Gate
+## 1. Choose Task Or Project Mode
 
-Use **task mode** for one bounded change, one module, or already-named lanes under one accepted task. Continue to the Fast Gate without a broad repository scan.
+Use **task mode** for one bounded change, one module, or already-named lanes under one accepted task.
 
 Use **project mode** when any one is true:
+- The goal spans multiple modules, services, packages, routes, or testable capabilities.
+- Building, migrating, or finishing a complete product or application.
+- Several modules are visible but dependencies, shared contracts, or ownership are not yet mapped.
 
-- the user asks to build, rebuild, migrate, or finish a complete application or product
-- the goal spans multiple modules, services, packages, routes, or independently testable capabilities
-- several modules are visible but their dependencies, shared contracts, or ownership are not yet mapped
-- completing only the currently discussed module would leave material parts of the stated goal unplanned
+In project mode, read [references/project-scale-planning.md](references/project-scale-planning.md). Map the full product surface, assign shared contract owners, and compute the parallel frontier before launching workers. If scope is unclear, launch one read-only discovery lane first and hold implementation. Never silently reduce a project request to a single module.
 
-In project mode, read [references/project-scale-planning.md](references/project-scale-planning.md). Inventory the whole in-scope product surface, build the dependency graph, assign shared-contract ownership, and compute the current parallel frontier before launching implementation workers. If the module map is unclear, launch one bounded read-only discovery lane first and hold implementation.
+## 2. Decide Whether To Split
 
-Do not silently reduce a project-scale request to the current module. Record the remaining modules and their launch or hold state even when only the first wave can start now.
+Consider subagents only when independent workstreams reduce wall-clock time or a read-only lane de-risks implementation.
 
-## Composition Boundaries
+Split only if ALL of the following are true:
+- Workstreams are genuinely independent.
+- Each lane has a clear goal, bounded scope, deliverable, and acceptance check.
+- Write scopes are disjoint with zero overlap (`write(A) ∩ write(B) = ∅`).
+- No lane reads a file currently being modified by another lane (`write(A) ∩ read(B) = ∅`).
 
-Own execution-lane discovery, dependency scheduling, launch/hold decisions, and main-thread integration. Compose with other workflows instead of replacing them:
+If any condition fails or there is no strong parallel benefit, do NOT split: execute directly in the main thread.
 
-- Product requirements or scope are unclear: use the relevant requirements/product skill first.
-- A plan needs CEO, design, engineering, or DX review: run the requested review or `autoplan` first; schedule the accepted plan afterward.
-- OpenSpec artifacts or tasks exist: keep `openspec-apply-change` as the governing implementation workflow and owner of task selection/status updates. Treat its pending tasks as authoritative lane inputs; do not regenerate, bypass, or create a competing task state.
-- The user requests an external backend: let the backend-routing skill own that choice. This skill may define lane boundaries only when explicitly combined.
+## 3. Define Safe Lanes
 
-Do not run two execution orchestrators over the same write scopes at the same time. When another workflow already owns dispatch, provide a lane/dependency recommendation or wait for its handoff.
+Assign each lane an explicit role (`explorer`, `worker`, or `default`), read/write scopes, deliverable, acceptance criteria, and model profile:
+- `deep`: ambiguous root cause, security-sensitive work, complex shared contracts, high-risk integration, final review.
+- `balanced`: bounded implementation, ordinary refactoring, standard feature development, targeted verification.
+- `fast`: read-only scans, information extraction, evidence collection, deterministic transformations.
 
-## Long-Term Agent Candidate Policy
+Model mappings and host capability rules are defined in [references/runtime-compatibility.md](references/runtime-compatibility.md).
 
-The planner evaluates whether completed worker or verifier roles qualify as long-term agent candidates.
+**Shared Contract Rule**: Every shared API, database schema, route registry, migration, or global config must have exactly ONE owner lane per wave. Consumers may read established contracts but must not edit them concurrently.
 
-Promotion check modes:
-- `off`: do not evaluate long-term candidates
-- `silent` (default): evaluate internally; report candidates only when requested or in `Full`/`Explain` mode
-- `ask`: prompt the user when a high-confidence candidate exists
+## 4. Launch Or Hold
 
-Recommended promotion applies only to recurring, bounded steward/verifier roles with objective checks. Do not promote temporary task workers or broad coordinators.
+Use the minimum viable lane count. When ready lanes exceed concurrency budget:
+1. Launch critical-path work first.
+2. Launch lanes that unblock the most downstream work.
+3. Launch low-risk independent work.
+4. Hold lanes whose context or integration cost exceeds their wall-clock benefit.
 
-When approved by the user, persistent custom agent definitions use official Codex `.toml` format:
-- Personal custom agents: `~/.codex/agents/<agent>.toml`
-- Project custom agents: `.codex/agents/<agent>.toml`
+Hold any lane that touches another lane's files, depends on uncompleted investigation or shared contracts, or lacks clear acceptance. See [references/planner-details.md](references/planner-details.md) for lane mechanics.
 
-Never create or write custom agent `.toml` files without explicit user approval. Details live in [references/long-term-agents.md](references/long-term-agents.md).
+## 5. Write Child Prompts
 
-## Fast Gate
-
-Consider subagents when any one is true:
-
-- independent workstreams can reduce wall-clock
-- a read-only explorer or verification lane can unblock or de-risk implementation
-- the user provided separable files, tests, docs, ledgers, or named workstreams
-- the task is broad or risky enough that parallel investigation, review, or cleanup is useful
-
-No strong signal in task mode means `Not split` and main-thread work. In project mode, evaluate independent modules from the current parallel frontier rather than only the module currently being discussed. Considering subagents does not require launching them: launch only lanes with a clear goal, bounded read/write scope, a useful deliverable, and an acceptance check. Hold or merge lanes that are tiny, coupled, unclear, or likely to duplicate broad verification.
-
-## Launch & Capability Protocol
-
-When launching, use the minimum viable lane count. Multiple write-enabled workers are allowed when workstreams are genuinely independent and expected benefit justifies context cost. In project mode, launch only the current frontier; keep later waves held until dependencies and contracts pass.
-
-The planner expresses requirements through generic host capabilities:
-
-```yaml
-required_capabilities:
-  explicit_model: preferred
-  explicit_reasoning: preferred
-  isolated_context: required
-  read_only_agent: supported
-```
-
-Map these capabilities using [references/runtime-compatibility.md](references/runtime-compatibility.md). Every launched child uses isolated context (`isolated_context: required`), a compact Context Brief, and explicit semantic model and reasoning profiles.
-
-Child lane profiles:
-- `model_profile`: `deep` | `balanced` | `fast` (with optional `model_override`)
-- `reasoning_profile`: `auto` | `low` | `medium` | `high`
-
-Default profile task mapping baseline (re-aligned to official guidance):
-- `deep`: flagship model (`gpt-5.6-sol`) for ambiguous root cause, security audits, complex shared contracts, high-risk cross-module integration, complex multi-step planning, and final review.
-- `balanced`: general-purpose model (`gpt-5.6-terra`) for routine module implementation, bounded refactoring, standard feature development, and integrated verification.
-- `fast`: fast/cheap model (`gpt-5.6-luna`) for read-only scans, information extraction, deterministic transformations, and narrow low-risk tasks.
-
-Child prompts must be short and non-recursive:
+Child prompts must be short, non-recursive, and isolated:
 
 ```text
-Goal: [one narrow task]
-Working directory: [absolute path to the target repo/worktree/run directory]
-Read: [exact files/dirs]
-Write: [exact files/dirs or none]
-Acceptance: [checks]
-Preflight: before reading or editing, switch to Working directory or use absolute
-paths, then verify every Read/Write target exists. If a target is missing, stop
-and report the missing path and current cwd.
-Hard boundary: modify only Write. If another file is needed, stop and report.
-Verification: run only lane-local checks. Main thread runs final verification once.
-This lane is already scoped. Execute locally in this child thread.
-Do not split, delegate, launch subagents, or run orchestration.
+Goal: [one narrow outcome]
+Working directory: [target repository]
+Read first: [bounded files or directories]
+Write: [exact files or directories, or none]
+Acceptance: [lane-local checks]
+
+Boundary:
+- Work only inside this lane.
+- Do not launch or delegate to other agents.
+- Do not edit outside Write.
+- Stop and report when another scope is required.
+- Run only lane-local verification.
+- Return changes, checks, risks, and handoff notes.
 ```
 
-When the user's task names an absolute work directory, repeat that directory in every child prompt.
+Role-specific prompt templates are provided in [references/prompt-templates.md](references/prompt-templates.md).
 
-After launching a task-mode batch, the main thread waits once, integrates, and runs final verification. In project mode, the main thread integrates each wave, verifies shared contracts and lane-local outputs, updates module states, and recomputes the next parallel frontier.
+## 6. Integrate And Replan
 
-## Budgeting & Priority Scoring
+In task mode: wait for child lanes to complete, integrate changes, and run main-thread verification.
 
-The planner enforces cost and concurrency budgets:
+In project mode: after each wave completes, verify shared contracts and outputs, update module states, recompute the next parallel frontier, and launch the next wave.
 
-```yaml
-budget:
-  max_concurrency: 3
-  max_write_lanes: 2
-  cost_profile: cheap | balanced | quality
-  write_policy: single_writer | disjoint_only
-```
+## 7. Output Format
 
-When eligible candidate lanes exceed `max_concurrency`, rank lanes by `launch_score`:
+Return `Compact` format by default:
+1. **Why split or not split**: brief rationale.
+2. **Launch now**: list of ready lanes with model profiles and scopes.
+3. **Held lanes**: list of held lanes with specific hold reasons.
+4. **Integration note**: main thread verification and integration sequence.
 
-```text
-launch_score = critical_path_weight + unblock_value + risk_reduction + wall_clock_saved - integration_cost - context_cost
-```
-
-Record human-explainable `score_reasons` for each launch decision.
-
-## Output Modes
-
-1. **`Compact`** (Default): User-facing summary (`Why parallel`, `Launch status`, `Held lanes`, `Integration note`).
-2. **`Explain`**: Diagnostic output (`Scale decision`, `Candidate lanes`, `Merged/held reasons`, `Write overlap check`, `Dependency check`, `Budget rationale`, `Launch score`).
-3. **`Machine`**: Machine-readable JSON adhering to `schema/planner-plan.schema.json`.
-
-## Hold Or Escalate
-
-Do not launch a worker when write scopes overlap, write and read scopes conflict, work is small, a worker may need to touch another lane's files, it depends on unfinished investigation or a shared contract, acceptance is unclear, or scope cannot be bounded. Read [references/planner-details.md](references/planner-details.md) for detailed lane mechanics.
+Return `Full` format only when explicitly requested:
+1. Scale decision & surface map.
+2. Complete lane table with dependencies & contract owners.
+3. Current wave & ready child prompts.
+4. Integration and replan instructions.

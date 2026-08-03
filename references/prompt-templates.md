@@ -1,100 +1,73 @@
 # Prompt Templates
 
-Default to the shortest child prompt that preserves the lane boundary. Keep bookkeeping (`can_launch`, `held_reason`, model profiles, reasoning profiles) in the main thread unless requested in `Full` or `Explain` mode.
+Use these templates when generating non-recursive, bounded child prompts for subagents.
 
-## Minimal Child Prompt Shape
+## Common Boundary Block
+
+Include this standard boundary block in every child prompt:
 
 ```text
-You are the [explorer/worker/verification/cleanup] subagent.
-
-Goal: [one narrow outcome]
-Working directory: [absolute repo/worktree/run directory for this lane]
-Read: [exact files, dirs, tests, docs, or ledgers to inspect first]
-Write: [exact files or dirs this lane may modify; use none for read-only lanes]
-Acceptance: [concrete pass/fail checks or evidence]
-Preflight: before reading or editing, switch to Working directory or use absolute
-paths, then verify every Read/Write target exists. If any target is missing,
-stop and report the missing path and current cwd.
-Boundary: execute this lane locally in this child thread. Do not split, delegate,
-launch subagents, or run orchestration. Do not edit outside Write; if another
-file is needed, stop and report the required handoff.
-Verification: run only lane-local checks. The main thread handles broad final
-verification once.
-Return: [patch summary, findings, verification evidence, risks, handoff notes]
+Boundary:
+- Work strictly within assigned Read and Write scopes.
+- Do not launch, delegate, or spawn subagents.
+- Do not modify files outside Write.
+- Stop and report immediately if another scope or file is required.
+- Run only lane-local checks. Main thread executes final verification.
+- Return a summary of changes, checks, risks, and handoff notes.
 ```
 
-## Explorer Lane
+---
+
+## 1. Project Discovery Template
 
 ```text
-You are the explorer subagent.
+Goal: Map project structure, module boundaries, dependencies, and shared contract ownership.
+Working directory: [target repository]
+Read first: [packages/**, docs/**, or top-level architecture files]
+Write: [] (Read-only discovery)
+Acceptance: Return complete module matrix, dependency graph, and proposed contract owners.
 
-Goal: audit the assigned implementation area and return exact behavior, gaps, and likely next edit points.
-Working directory: [absolute repo/worktree/run directory for this lane]
-Read: [files, directories, tests, docs, ledgers, or diffs to inspect first]
-Write: none
-Acceptance: return concrete findings, smallest safe edit scope, hidden dependencies, and verification suggestions.
-Preflight: before reading, switch to Working directory or use absolute paths, then verify every Read target exists. If any target is missing, stop and report the missing path and current cwd.
-Boundary: execute this lane locally in this child thread. Do not split, delegate, launch subagents, or make code changes unless explicitly requested. Avoid unrelated repo scans unless the listed scope is insufficient.
-Return: findings, recommended edit scope, verification suggestions, and handoff summary.
+[Insert Common Boundary Block]
 ```
 
-## Project Surface Discovery Lane
+---
+
+## 2. Explorer Template
 
 ```text
-You are the project-surface explorer subagent.
+Goal: [specific investigation or behavior audit]
+Working directory: [target repository]
+Read first: [exact files or subtrees to inspect]
+Write: [] (Read-only audit)
+Acceptance: [concrete audit report or behavior map]
 
-Goal: map the complete in-scope product into coherent modules and identify the first safe parallel frontier. Do not implement product code.
-Working directory: [absolute repository/worktree directory]
-Read: [user brief/spec/roadmap, repository and package tree, architecture docs, route/service/schema/test registries, current worktree status]
-Write: none
-Acceptance: return a module matrix with owns, depends_on, shared_contracts, candidate read/write scopes, lane-local acceptance, launch state, and held reason; identify one owner for every shared contract; propose Wave 0 and the first implementation frontier.
-Preflight: switch to Working directory or use absolute paths, then verify the listed authoritative inputs exist. Report missing inputs and distinguish them from optional docs.
-Boundary: execute this discovery locally in this child thread. Do not split, delegate, launch subagents, edit files, or equate top-level directories with independent modules without responsibility and dependency evidence.
-Return: scale confirmation, complete module matrix, dependency/contract notes, current frontier, wave plan, uncertainties, and held implementation lanes.
+[Insert Common Boundary Block]
 ```
 
-## Worker Lane
+---
+
+## 3. Worker Template
 
 ```text
-You are the worker subagent.
+Goal: [one narrow implementation or refactoring goal]
+Working directory: [target repository]
+Read first: [exact files or subtrees]
+Write: [exact files or subtrees to modify]
+Acceptance: [lane-local pass/fail test command]
 
-Goal: implement the assigned change in the narrowest possible scope.
-Working directory: [absolute repo/worktree/run directory for this lane]
-Read: [files, directories, tests, docs, ledgers, or diffs to inspect first]
-Write: [exact files or directories this lane may modify]
-Acceptance: [lane-local checks and behavior invariants]
-Preflight: before reading or editing, switch to Working directory or use absolute paths, then verify every Read/Write target exists. If any target is missing, stop and report the missing path and current cwd.
-Boundary: execute this lane locally in this child thread. Do not split, delegate, launch subagents, or edit outside Write. If another file is required, stop and report the required handoff instead of patching it.
-Verification: run only the specified lane-local checks. Leave broad or cross-lane final verification to the main thread.
-Return: what changed, files touched, verification run, risks, and handoff summary.
+[Insert Common Boundary Block]
 ```
 
-## Verification Lane
+---
+
+## 4. Verifier Template
 
 ```text
-You are the verification subagent.
+Goal: [verify feature implementation against spec or run targeted quality check]
+Working directory: [target repository]
+Read first: [target implementation files & test suites]
+Write: [test files or report path]
+Acceptance: [verification test suite command]
 
-Goal: validate the assigned behavior through targeted tests, UI paths, or docs checks and write back concise evidence if requested.
-Working directory: [absolute repo/worktree/run directory for this lane]
-Read: [product files, tests, docs, ledgers, or UI paths to inspect first]
-Write: [verification docs or ledgers this lane may update; use none for report-only]
-Acceptance: [checklist, commands, UI observations, or doc evidence required]
-Preflight: before reading or editing, switch to Working directory or use absolute paths, then verify every Read/Write target exists. If any target is missing, stop and report the missing path and current cwd.
-Boundary: execute this lane locally in this child thread. Do not split, delegate, launch subagents, or change product code unless fixing a broken verification harness is explicitly in scope.
-Return: verification results, concrete evidence, files updated, remaining risks, and handoff summary.
-```
-
-## Cleanup Lane
-
-```text
-You are the cleanup subagent.
-
-Goal: perform maintainability-only cleanup with no intended behavior change.
-Working directory: [absolute repo/worktree/run directory for this lane]
-Read: [files, directories, tests, docs, ledgers, or diffs to inspect first]
-Write: [exact files or directories this lane may modify]
-Acceptance: preserve listed invariants and pass the narrowest useful checks.
-Preflight: before reading or editing, switch to Working directory or use absolute paths, then verify every Read/Write target exists. If any target is missing, stop and report the missing path and current cwd.
-Boundary: execute this lane locally in this child thread. Do not split, delegate, launch subagents, change runtime behavior, change API shape, or edit outside Write. If another file is required, stop and report the handoff.
-Return: structural changes made, invariants preserved, verification run, risky areas left untouched, and handoff summary.
+[Insert Common Boundary Block]
 ```

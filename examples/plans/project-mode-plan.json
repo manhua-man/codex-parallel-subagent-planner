@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "mode": "project",
+  "budget": {
+    "max_concurrency": 3,
+    "max_write_lanes": 2,
+    "cost_profile": "balanced"
+  },
+  "contracts": [
+    {
+      "id": "public-api",
+      "owner": "contracts",
+      "state": "pending",
+      "description": "Shared DTOs and API interfaces"
+    }
+  ],
+  "lanes": [
+    {
+      "id": "contracts",
+      "agent_type": "worker",
+      "model_profile": "deep",
+      "reasoning_profile": "high",
+      "depends_on": [],
+      "read_scope": ["src/api/**"],
+      "write_scope": ["src/api/contracts/**"],
+      "acceptance": ["npm run test:contracts"],
+      "deliverable": "Stable public API contract definitions",
+      "state": "ready",
+      "held_reason": null,
+      "launch_score": 9.5,
+      "score_reasons": ["Unblocks billing and auth downstream lanes", "Single contract owner"]
+    },
+    {
+      "id": "billing",
+      "agent_type": "worker",
+      "model_profile": "balanced",
+      "reasoning_profile": "medium",
+      "depends_on": ["contracts"],
+      "read_scope": ["src/billing/**", "src/api/contracts/**"],
+      "write_scope": ["src/billing/**"],
+      "acceptance": ["npm run test:billing"],
+      "deliverable": "Billing feature implementation",
+      "state": "blocked",
+      "held_reason": "dependency",
+      "launch_score": 0.0,
+      "score_reasons": ["Held waiting on contracts lane integration"]
+    }
+  ],
+  "frontier": ["contracts"]
+}

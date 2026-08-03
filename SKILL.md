@@ -106,6 +106,7 @@ Return Full when requested or during complex diagnostic reviews:
 ### Machine
 Return Machine JSON only when explicitly requested, when another program will consume the result, or when downstream schedulers require a versioned contract:
 - Follow `schema/planner-plan.schema.json` with `"schema_version": "1.0"`.
+- Read [references/machine-schema.md](references/machine-schema.md) for protocol details and boundaries.
 - Do not include Markdown fences or conversational text.
 
 ## 8. Long-Term Agent Candidates
@@ -113,13 +114,13 @@ Return Machine JSON only when explicitly requested, when another program will co
 After completing integration, optionally evaluate whether a subagent role qualifies as a reusable custom agent.
 
 Only propose promotion when:
-- The same bounded responsibility has appeared repeatedly.
+- The same bounded stewardship or verification responsibility has appeared repeatedly.
 - Its scope, inputs, outputs, and acceptance checks are stable.
 - A dedicated agent would eliminate repeated manual setup.
 
 **Policy Settings** (`promotion_check`):
 - `off`: do not evaluate promotion.
-- `silent` (default): evaluate internally; report candidates only when a high-confidence candidate exists.
+- `silent` (default): evaluate internally; report a candidate only when a high-confidence recurring role exists.
 - `ask`: explicitly report qualified candidates after integration.
 
-Never propose more than one candidate per task. Never generate or write a custom agent `.toml` file without explicit user approval. Read [references/long-term-agents.md](references/long-term-agents.md) when a qualified candidate exists or when creating a persistent agent spec.
+Never propose more than one candidate per run. Never generate or write a custom agent `.toml` file without explicit user approval. Read [references/long-term-agents.md](references/long-term-agents.md) when a qualified candidate exists or when creating a persistent agent spec.

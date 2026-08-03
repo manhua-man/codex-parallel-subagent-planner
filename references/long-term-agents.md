@@ -6,29 +6,31 @@ Use this reference when evaluating whether a completed subagent role qualifies a
 
 Long-term custom agents are persistent, named agent roles defined in official Codex `.toml` template format. A persistent agent spec is justified only when it captures a recurring, bounded stewardship or quality-review responsibility with stable, objective verification.
 
-### Key Rules
-1. **Max 1 Candidate Per Task**: Never propose more than one long-term agent candidate in a single task execution.
+### Strict Anti-Noise & Security Rules
+1. **Max 1 Candidate Per Run**: Never propose or report more than one long-term agent candidate in a single execution run.
 2. **Explicit User Approval Required**: Never create, write, or modify a custom agent `.toml` file without explicit user confirmation.
 
-### Promotion Check Settings
+### Promotion Check Settings (`promotion_check`)
 - `promotion_check: off` — do not evaluate candidate promotion.
-- `promotion_check: silent` (default) — evaluate candidates internally; report candidates only in `Full` mode or when a high-confidence candidate exists.
+- `promotion_check: silent` (default) — evaluate candidates internally; report a candidate only when a high-confidence recurring role exists.
 - `promotion_check: ask` — explicitly prompt the user whenever a qualified candidate is identified after integration.
 
 ## Promotion Criteria
 
 Promote a role ONLY when ALL of the following are true:
-- The exact same responsibility has appeared repeatedly across tasks or releases.
+- The exact same stewardship or verification responsibility has appeared repeatedly across tasks or releases.
 - The role has a stable, well-defined ownership boundary or quality invariant.
 - The role operates with explicit read/write scopes and objective pass/fail checks.
-- A dedicated agent would eliminate repeated manual prompt setup.
+- A dedicated custom agent would eliminate repeated manual prompt setup.
 
-## Rejection Criteria
+## Strict Rejection Criteria (Do NOT Promote)
 
-Do NOT promote when any of the following are true:
-- The subagent was a temporary, one-off task worker.
-- The role is a generic "coder" or "researcher" with no stable boundary.
-- The role relies on transient parent conversation history.
+Do NOT promote a subagent role when any of the following are true:
+- **Temporary Project Roles**: Roles created for a specific feature or temporary task (e.g., `payment-refactor-agent`, `login-fix-agent`).
+- **Feature-Specific Workers**: Workers tied to temporary file paths or narrow, one-off implementation details.
+- **Single-Use Unblockers**: Temporary agents launched solely to unblock a single task dependency.
+- **Vague Boundaries**: Generic "coder" or "researcher" roles with no stable quality invariant.
+- **Unstable Inputs/Outputs**: Roles whose behavior or acceptance checks change with every task.
 
 ## Custom Agent Storage Paths & Format
 

@@ -7,8 +7,8 @@
 ## Three-Layer Product Architecture
 
 1. **Parallel Planning Core**: Distinguishes Task vs. Project mode, evaluates the Split Gate, enforces disjoint scopes (`write ∩ write = ∅`, `write ∩ read = ∅`), assigns shared contract owners, and schedules multi-module projects in safe waves.
-2. **Machine Schema Contract**: Machine mode outputs structured JSON adhering to `schema/planner-plan.schema.json` (`schema_version: "1.0"`) so downstream tools and schedulers can consume plans through a stable data contract.
-3. **Long-Term Agent Candidates**: Evaluates recurring subagent roles after integration (`promotion_check: silent` default) and generates persistent `.codex/agents/<name>.toml` custom agent specs upon explicit user approval.
+2. **Machine Schema Contract**: Machine mode outputs structured JSON adhering to `schema/planner-plan.schema.json` (`schema_version: "1.0"`, documented in `references/machine-schema.md`) so downstream tools and schedulers can consume plans through a stable data contract.
+3. **Long-Term Agent Candidates**: Evaluates recurring subagent roles after integration (`promotion_check: silent` default, documented in `references/long-term-agents.md`) and generates persistent `.codex/agents/<name>.toml` custom agent specs upon explicit user approval.
 
 ## Operating Modes
 
@@ -67,14 +67,15 @@ parallel-subagent-planner/
 ├─ SKILL.md
 ├─ agents/
 │  └─ openai.yaml
-├─ references/
-│  ├─ project-scale-planning.md
-│  ├─ planner-details.md
-│  ├─ prompt-templates.md
-│  ├─ long-term-agents.md
-│  └─ runtime-compatibility.md
 ├─ schema/
 │  └─ planner-plan.schema.json
+├─ references/
+│  ├─ planner-details.md
+│  ├─ project-scale-planning.md
+│  ├─ machine-schema.md
+│  ├─ long-term-agents.md
+│  ├─ prompt-templates.md
+│  └─ runtime-compatibility.md
 ├─ README.md
 ├─ README.zh-CN.md
 ├─ CHANGELOG.md

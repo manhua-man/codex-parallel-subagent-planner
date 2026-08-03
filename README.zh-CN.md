@@ -7,8 +7,8 @@
 ## 三层产品架构
 
 1. **并行规划核心 (Parallel Planning Core)**：区分 Task 与 Project 模式，评估 Split Gate，硬性隔离写写冲突 (`write ∩ write = ∅`) 与写读数据竞争 (`write ∩ read = ∅`)，分配共享契约 Owner，并按阶段安全调度 Wave。
-2. **机器数据协议 (Machine Schema Contract)**：Machine 模式遵循 `schema/planner-plan.schema.json` (`schema_version: "1.0"`) 输出结构化 JSON，为后续调度器或其他自动化工具提供稳定、带版本的数据契约。
-3. **能力沉淀机制 (Long-Term Agent Candidates)**：任务集成后评估反复出现的 Subagent 角色 (`promotion_check: silent` 默认)，并在用户明确批准后生成持久化的 `.codex/agents/<name>.toml` 自定义 Agent 配置。
+2. **机器数据协议 (Machine Schema Contract)**：Machine 模式遵循 `schema/planner-plan.schema.json` (`schema_version: "1.0"`，详见 `references/machine-schema.md`) 输出结构化 JSON，为后续调度器或其他自动化工具提供稳定、带版本的数据契约。
+3. **能力沉淀机制 (Long-Term Agent Candidates)**：任务集成后评估反复出现的 Subagent 角色 (`promotion_check: silent` 默认，详见 `references/long-term-agents.md`)，并在用户明确批准后生成持久化的 `.codex/agents/<name>.toml` 自定义 Agent 配置。
 
 ## 运行模式
 
@@ -67,14 +67,15 @@ parallel-subagent-planner/
 ├─ SKILL.md
 ├─ agents/
 │  └─ openai.yaml
-├─ references/
-│  ├─ project-scale-planning.md
-│  ├─ planner-details.md
-│  ├─ prompt-templates.md
-│  ├─ long-term-agents.md
-│  └─ runtime-compatibility.md
 ├─ schema/
 │  └─ planner-plan.schema.json
+├─ references/
+│  ├─ planner-details.md
+│  ├─ project-scale-planning.md
+│  ├─ machine-schema.md
+│  ├─ long-term-agents.md
+│  ├─ prompt-templates.md
+│  └─ runtime-compatibility.md
 ├─ README.md
 ├─ README.zh-CN.md
 ├─ CHANGELOG.md

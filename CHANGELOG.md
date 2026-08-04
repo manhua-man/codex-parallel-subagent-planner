@@ -2,10 +2,17 @@
 
 All notable changes to the `parallel-subagent-planner` skill will be documented in this file.
 
+## [v2.0.10] - 2026-08-05
+
+### Zero-Leftover Consistency & Softened Sandbox Wording Patch
+- **Purged Leftover Worker Term**: Replaced `Temporary Feature Workers` with `Temporary Feature Lanes` in `references/agent-evolution.md:27`.
+- **Flexible Role Metadata Table**: Updated `Role` entry in `references/lane-planning.md:31` metadata table to specify flexible descriptive role labels.
+- **Softened Read-Only Sandboxing Wording**: Updated `references/runtime-compatibility.md:23` to flexibly cover all read-only audit lanes (`explorer` or read-only `reviewer`).
+
 ## [v2.0.9] - 2026-08-05
 
 ### Role System Simplification Patch
-- **Role System Simplification**: Simplified role guidance across `references/context-and-prompts.md` Section 2, `SKILL.md` Section 4, and READMEs. Removed over-constraining taxonomy language ("4 canonical roles vs domain custom role rules"), treating roles as flexible descriptive labels assigned dynamically based on task goals.
+- **Role System Simplification**: Simplified role guidance across `references/context-and-prompts.md` Section 2, `SKILL.md` Section 4, and READMEs to treat roles as flexible descriptive labels.
 
 ## [v2.0.8] - 2026-08-05
 

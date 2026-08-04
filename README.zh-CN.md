@@ -1,4 +1,4 @@
-# parallel-subagent-planner (v2.0.9)
+# parallel-subagent-planner (v2.0.10)
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
@@ -48,7 +48,7 @@ Task ➔ Plan ➔ Launch ➔ Observe ➔ Replan ➔ Integrate ➔ Evolve
 
 ---
 
-## 输出模式 (Output Modes)
+## Output 模式 (Output Modes)
 
 - **Compact**（默认）：面向人类阅读的摘要（`Decision`, `Launch now` [包含 Goal/Write/Deliverable/Acceptance], `Hold / Block`, `Integration`, 可选 `Agent candidates`）。
 - **Full**：完整文本计划（包含 Lane 表格、契约 Owner、切分策略、上下文边界与 Child Prompts）。

@@ -20,4 +20,4 @@ Adapt execution lane definitions to the active host runtime's capabilities:
 
 - **Isolated Context**: If the host supports subagents with isolated context windows, assign strict `Read`, `Write`, and `Ignore` scopes per lane.
 - **Explicit Model Selection**: If the host allows specifying models per subagent, pass the recommended model profile (`deep`, `balanced`, `fast`).
-- **Read-Only Subagents**: If the host supports read-only subagent sandboxing, enforce zero write permissions (`write: none`) for `explorer` and `reviewer` lanes.
+- **Read-Only Subagents**: If the host supports read-only subagent sandboxing, enforce zero write permissions (`write: none`) for read-only audit lanes (such as `explorer` or read-only `reviewer`).

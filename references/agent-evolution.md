@@ -24,7 +24,7 @@ Promote a candidate ONLY when ALL 4 quality filters are satisfied:
 4. **Reuse Value**: Creating a dedicated custom agent eliminates repeated manual prompt setup and yields clear recurring value.
 
 ### Rejection List (DO NOT PROMOTE)
-- ❌ **Temporary Feature Workers**: Roles created for a specific feature or temporary task (e.g., `payment-refactor-agent`, `login-fix-agent`).
+- ❌ **Temporary Feature Lanes**: Roles created for a specific feature or temporary task (e.g., `payment-refactor-agent`, `login-fix-agent`).
 - ❌ **Single-Use Unblockers**: Temporary agents launched solely to unblock a single task dependency.
 - ❌ **Vague Boundaries**: Generic "coder" or "researcher" roles with no stable quality invariant.
 - ❌ **Unstable Specs**: Roles whose behavior, inputs, or acceptance checks change unpredictably with every task.

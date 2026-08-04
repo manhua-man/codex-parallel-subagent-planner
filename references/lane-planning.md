@@ -28,7 +28,7 @@ Acceptance:       [Objective pass/fail test or verification check]
 
 -- Six Control Metadata Fields (Planner Management) --
 ID:               [Unique string identifier]
-Role:             [explorer | implementer | reviewer | migrator]
+Role:             [descriptive role label (e.g., explorer, implementer, reviewer, migrator)]
 Ignore:           [Noise boundaries and sibling lane directories]
 Model profile:    [deep | balanced | fast]
 State:            [ready | running | blocked | integrated | done | held]

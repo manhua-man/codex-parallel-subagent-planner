@@ -10,7 +10,7 @@ description: >-
   coding-agent backends.
 ---
 
-# Parallel Subagent Planner (v2.0.9 Lean Harness Skill)
+# Parallel Subagent Planner (v2.0.10 Lean Harness Skill)
 
 Decide whether subagents materially help, split accepted work into bounded lanes, hold coupled work, schedule project work in waves, and guide Codex execution.
 

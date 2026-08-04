@@ -62,7 +62,7 @@ Skill does NOT maintain a persistent runtime state store. It consumes status upd
 
 ---
 
-## 4. Main Thread Integration & Automatic Diagnostic Logging
+## 4. Main Thread Integration
 
 Child lanes execute in isolated scopes and perform only lane-local checks.
 
@@ -70,16 +70,10 @@ Child lanes execute in isolated scopes and perform only lane-local checks.
 - **Sandbox Handling**: When the host provides isolated sandboxes or worktrees, execute child lanes inside them. Otherwise, preserve logical isolation through strict ownership scopes (`Read`, `Write`, `Ignore`).
 
 ### Integration Responsibilities
+
 - Merge child lane deliverables into the target repository.
 - Run workspace-wide verification and cross-module integration test suites.
 - Transition lanes from `done` to `integrated` and trigger incremental replanning for the next wave.
-
-### Zero-Human Automated Diagnostic Logging
-During the `Integrate` step, if any child lane fails, violates scope boundaries, or fails acceptance tests:
-1. **Main Thread Captures Failure**: Automatically detects the lane error, boundary violation, or test failure.
-2. **Automatic Failure Diagnosis**: Runs automated root cause analysis matching the failure to specific planning rules.
-3. **Appends to `failures.md`**: Automatically appends a 5-line failure card entry to `failures.md` (requires 100% zero-human intervention).
-
-```text
-Child Lane Fails / Boundary Violated / Test Fails ➔ Main Thread Captures Failure ➔ AI Failure Diagnosis ➔ Auto-appends to failures.md
-```
+- When a lane fails, violates scope, or fails acceptance, mark it `blocked` with an explicit `blocked_reason`.
+- Report failure evidence in the current response and replan only the affected lane and its downstream dependents.
+- Do not create or maintain persistent failure logs.

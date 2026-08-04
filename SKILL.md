@@ -10,7 +10,7 @@ description: >-
   coding-agent backends.
 ---
 
-# Parallel Subagent Planner (v2.0.4 Lean Harness Skill)
+# Parallel Subagent Planner (v2.0.5 Lean Harness Skill)
 
 Decide whether subagents materially help, split accepted work into bounded lanes, hold coupled work, schedule project work in waves, and guide Codex execution.
 
@@ -69,9 +69,9 @@ When ready lanes exceed concurrency budget:
 3. Launch low-risk independent work.
 4. Hold remaining lanes (`state: held`, `held_reason: concurrency_budget`).
 
-## 6. Integrate And Replan (State-Aware Incremental Replanning & Auto-Logging)
+## 6. Integrate And Replan
 
-Read [references/project-waves.md](references/project-waves.md) for incremental replanning and automated diagnostic logging guidelines.
+Read [references/project-waves.md](references/project-waves.md) for wave integration and incremental replanning guidelines.
 
 In task mode: wait for child lanes to complete, merge deliverables, and run main-thread verification.
 
@@ -80,7 +80,7 @@ In project mode: after each wave completes or when status updates arrive:
 - **`integrated`**: Main thread has merged deliverables and verified workspace integration. Freeze `integrated` lanes.
 - A downstream lane may launch only when every prerequisite lane is `integrated` and every referenced shared contract is `frozen`.
 - Recalculate ONLY affected downstream lanes and unblocked dependencies to form the next parallel frontier.
-- **Automated Failure Logging**: If a child lane fails, violates scope, or fails acceptance, the main thread automatically runs failure diagnosis and appends a 5-line failure card entry to `failures.md` (100% zero-human intervention).
+- If a child lane fails, violates scope, or fails acceptance, mark it `blocked` with an explicit reason, report the failure in the current response, and replan only the affected work.
 
 Main thread is 100% responsible for final integration and global workspace verification.
 

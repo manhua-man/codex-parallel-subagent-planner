@@ -1,4 +1,4 @@
-# parallel-subagent-planner (v2.0.4)
+# parallel-subagent-planner (v2.0.5)
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
@@ -24,7 +24,6 @@ Task ➔ Plan ➔ Launch ➔ Observe ➔ Replan ➔ Integrate ➔ Evolve
 - **Lane Ready Gate**: Every candidate lane must satisfy 6 core requirements (`Goal`, `Read`, `Write`, `Deliverable`, `Depends on`, `Acceptance`) alongside Control Metadata (`ID`, `Role`, `Ignore`, `Model profile`, `State`, `Reason`) before launching.
 - **Canonical 4 Role System**: Standardized directives for `explorer` (read-only discovery), `implementer` (bounded modifications), `reviewer` (diff & risk audit), and `migrator` (schema & API migration).
 - **Controlled Agent Evolution**: Evaluates recurring subagent roles after integration (`promotion_check: silent` default, documented in `references/agent-evolution.md`) and generates persistent `.codex/agents/<name>.toml` specs ONLY upon explicit user approval.
-- **100% Zero-Human Automated Failure Diagnostic Logging**: During main thread integration, if any child lane fails, violates scope, or fails acceptance, the main thread automatically runs failure diagnosis and appends a 5-line failure card entry to `failures.md`.
 
 ---
 
@@ -34,7 +33,7 @@ This skill strictly avoids physical runtime infrastructure:
 - ❌ **No Physical Runtime**: Does not implement `spawn()`, `run()`, `kill()` process handles.
 - ❌ **No Physical Scheduler**: Does not maintain physical task queues, priority queues, or worker thread pools.
 - ❌ **No Communication Layer**: Does not implement inter-agent message buses or mailboxes.
-- ❌ **No Physical Database**: Does not maintain task databases, execution logs, or metrics systems.
+- ❌ **No Persistent Runtime State**: Does not maintain task databases, execution logs, failure logs, or metrics systems.
 
 All physical execution, threading, tool calling, and IPC belong 100% to **Codex / Agent Runtime / External Orchestrator**.
 

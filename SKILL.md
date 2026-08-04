@@ -10,7 +10,7 @@ description: >-
   coding-agent backends.
 ---
 
-# Parallel Subagent Planner (v2.0.7 Lean Harness Skill)
+# Parallel Subagent Planner (v2.0.8 Lean Harness Skill)
 
 Decide whether subagents materially help, split accepted work into bounded lanes, hold coupled work, schedule project work in waves, and guide Codex execution.
 
@@ -105,7 +105,7 @@ Return Full when requested or during complex diagnostic reviews:
 
 Read [references/agent-evolution.md](references/agent-evolution.md) for candidate quality auditing rules.
 
-After integration, evaluate whether recurring subagent roles pass the 4 candidate quality filters (`Frequency` 2+ in visible history, `Stability`, `Boundary`, `Reuse Value`).
+After integration, evaluate whether recurring subagent role patterns pass the 4 candidate quality filters (`Frequency` 2+ in visible history, `Stability` of role invariants & boundary rules, `Boundary`, `Reuse Value`).
 
 **Policy Settings** (`promotion_check`):
 - `off`: do not evaluate promotion.

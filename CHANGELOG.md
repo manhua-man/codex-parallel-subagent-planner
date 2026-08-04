@@ -2,10 +2,15 @@
 
 All notable changes to the `parallel-subagent-planner` skill will be documented in this file.
 
+## [v2.0.8] - 2026-08-05
+
+### Agent Evolution Boundary Abstraction Patch
+- **Role Invariant Abstraction**: Clarified in `references/agent-evolution.md` Section 1 & 3 and `SKILL.md` Section 8 that custom agent candidate promotion evaluates recurring role invariants, developer instructions, and sandbox safety rules (rather than static hardcoded file paths). Generated `.toml` files capture reusable instructions while accepting target file paths dynamically at runtime.
+
 ## [v2.0.7] - 2026-08-05
 
 ### Role Extensibility Clarification Patch
-- **Role Extensibility Clarification**: Clarified in `references/context-and-prompts.md` Section 2 and `SKILL.md` Section 4 that the 4 canonical roles (`explorer`, `implementer`, `reviewer`, `migrator`) are recommended built-in defaults, not a dogmatic lock. Custom domain roles (e.g., `docs_writer`) are supported provided explicit `Goal`, `Read`, `Write`, and `Ignore` boundaries are defined.
+- **Role Extensibility Clarification**: Clarified in `references/context-and-prompts.md` Section 2 and `SKILL.md` Section 4 that the 4 canonical roles (`explorer`, `implementer`, `reviewer`, `migrator`) are recommended built-in defaults, not a dogmatic lock. Custom domain roles are supported provided explicit boundaries are defined.
 
 ## [v2.0.6] - 2026-08-05
 
@@ -32,7 +37,7 @@ All notable changes to the `parallel-subagent-planner` skill will be documented 
 ## [v2.0.2] - 2026-08-04
 
 ### Consistency Patch
-- **Wave Deferred Lanes Marking**: Updated `references/project-waves.md` to explicitly mark downstream lanes with unmet dependencies as `blocked`, and ready lanes deferred by policy/concurrency as `held`.
+- **Wave Deferred Lanes Marking**: Updated `references/project-waves.md` to explicitly mark downstream lanes with unmet dependencies as `blocked`.
 
 ## [v2.0.1] - 2026-08-04
 

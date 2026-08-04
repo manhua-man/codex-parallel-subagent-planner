@@ -45,7 +45,7 @@ Multiple candidates may be reported together when qualified.
 
 **Hard Requirement**: NEVER create, write, or modify any custom agent `.toml` file without explicit user confirmation.
 
-Map the recommended semantic profile (`deep`, `balanced`, `fast`) to a model supported by the active host.
+Map the recommended semantic profile (`deep`, `balanced`, `fast`) to a model supported by the active host. Set `sandbox_mode` according to host capabilities (`read-only` or `<host-supported-read-only-mode>` for audit/reviewer agents).
 
 Persistent custom agent storage locations:
 - Personal custom agents: `~/.codex/agents/<agent-name>.toml`
@@ -57,11 +57,11 @@ Persistent custom agent storage locations:
 name = "api_contract_reviewer"
 description = "Maintains API backward compatibility and checks route contract invariants."
 model = "<host-supported-model-id>"
-sandbox_mode = "workspace-write"
+sandbox_mode = "read-only"
 
 developer_instructions = """
 Review API schema modifications, report backward-incompatible changes, and verify route contracts.
-Do not modify contract specifications without explicit user approval.
+Do not modify contract specifications or workspace source code without explicit user approval.
 """
 ```
 

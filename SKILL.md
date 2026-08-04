@@ -10,7 +10,7 @@ description: >-
   coding-agent backends.
 ---
 
-# Parallel Subagent Planner (v2.0.1 Lean Harness Skill)
+# Parallel Subagent Planner (v2.0.2 Lean Harness Skill)
 
 Decide whether subagents materially help, split accepted work into bounded lanes, hold coupled work, schedule project work in waves, and guide Codex execution.
 
@@ -42,7 +42,7 @@ Choose slicing strategy based on codebase coupling:
 
 Every candidate lane MUST pass the Lane Ready Gate by defining all 6 canonical Ready Gate fields (`Goal`, `Read`, `Write`, `Deliverable`, `Depends on`, `Acceptance`) alongside Control Metadata (`ID`, `Role`, `Ignore`, `Model profile`, `State`, `Reason`).
 
-**Shared Contract Rule**: Every shared API, database schema, route registry, migration, or global config must have exactly ONE owner lane per wave. Consumers may read established contracts but must not edit them concurrently.
+**Shared Contract Rule**: Every shared API, database schema, route registry, migration, or global config must have exactly ONE owner lane per wave. Consumers may read established contracts once frozen, but must not edit contract files concurrently.
 
 ## 4. Assign Context, Role And Model Profile
 
@@ -78,7 +78,7 @@ In task mode: wait for child lanes to complete, merge deliverables, and run main
 In project mode: after each wave completes or when status updates arrive:
 - **`done`**: Child agent completed local work. Preserve `done` lanes while awaiting main-thread integration.
 - **`integrated`**: Main thread has merged deliverables and verified workspace integration. Freeze `integrated` lanes.
-- Downstream dependencies are satisfied ONLY when prerequisite lanes reach `integrated` state.
+- A downstream lane may launch only when every prerequisite lane is `integrated` and every referenced shared contract is `frozen`.
 - Recalculate ONLY affected downstream lanes and unblocked dependencies to form the next parallel frontier.
 
 Main thread is 100% responsible for final integration and global workspace verification.
@@ -128,5 +128,5 @@ Multiple qualified candidates may be reported together.
 7. Use the minimum viable lane count.
 8. Subagents must never recursively launch or delegate to other agents.
 9. Main thread is 100% responsible for final integration and global verification.
-10. Downstream dependencies are satisfied ONLY when prerequisite lanes are `integrated`.
+10. A downstream lane may launch only when every prerequisite lane is integrated and every referenced shared contract is frozen.
 11. Never create or edit persistent custom agent `.toml` files without explicit user approval.

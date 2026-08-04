@@ -57,7 +57,8 @@ Frontier safety collision rules enforced in every wave:
 
 Every shared API, database schema, route registry, migration, or global config must have **exactly ONE owner lane per wave**.
 - The contract owner lane modifies and freezes the contract specification.
-- Consumer lanes may read the frozen contract but MUST NOT edit contract files concurrently.
+- Consumer lanes may read the frozen contract once published, but MUST NOT edit contract files concurrently.
+- Downstream consumer lanes may launch as soon as referenced shared contracts reach `frozen` status.
 
 ---
 
@@ -68,13 +69,13 @@ Every shared API, database schema, route registry, migration, or global config m
 - **Exceptions**: `ready/running ➔ blocked`, `ready ➔ held`, `blocked/held ➔ ready`
 
 ### Blocked vs. Held Definitions
-- **`blocked`**: Objective impossibility to proceed (prerequisite lane not integrated, contract un-integrated, verification failed, missing input).
+- **`blocked`**: Objective impossibility to proceed (prerequisite lane not integrated, contract un-integrated/un-frozen, verification failed, missing input).
 - **`held`**: Lane is ready to execute, but Planner holds it temporarily due to policy or resource limits (concurrency budget reached, parallel benefit too low, low priority conflict).
 
 ### Standardized Reason Enum Values
 
 #### `blocked_reason`
-- `dependency`: Waiting on prerequisite lanes to become `integrated`.
+- `dependency`: Waiting on prerequisite lanes to become `integrated` or contracts to become `frozen`.
 - `contract`: Waiting on a shared contract owner lane to finish and freeze contract changes.
 - `unclear_scope`: Write scope boundaries or target file paths are ambiguous.
 - `unclear_acceptance`: Acceptance criteria or verification commands are missing or non-verifiable.

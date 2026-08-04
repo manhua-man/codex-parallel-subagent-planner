@@ -89,7 +89,8 @@ Boundary:
 
 #### `migrator`
 ```text
-- Ensure 100% backward compatibility for existing consumers.
+- Preserve backward compatibility when required.
+- When breakage is intentional, identify affected consumers, document the migration path, and provide rollback notes.
 - Write reversible, idempotent migration steps.
 - Verify that old API contracts continue to resolve correctly.
 ```

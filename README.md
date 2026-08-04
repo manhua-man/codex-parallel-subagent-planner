@@ -1,4 +1,4 @@
-# parallel-subagent-planner (v2.0.1)
+# parallel-subagent-planner (v2.0.2)
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 

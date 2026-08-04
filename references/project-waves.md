@@ -33,8 +33,10 @@ If architecture or boundaries are unclear, launch ONE read-only `explorer` lane 
 ## 2. Shared Contract Owners & Parallel Frontier
 
 - **Contract Ownership**: Assign exactly ONE owner lane per wave for each shared API, schema, router, or global config.
-- **Frontier Definition**: The **Frontier** is the exact set of ready lanes (`state: ready`) whose prerequisite dependencies are fully satisfied (`integrated`).
-- **Wave Launching**: Launch only ready frontier lanes within budget constraints. Hold downstream dependent lanes (`state: blocked` or `state: held`).
+- **Frontier Definition**: The **Frontier** is the exact set of ready lanes (`state: ready`) whose prerequisite lane dependencies are fully satisfied (`integrated`) and referenced shared contracts are published (`frozen`).
+- **Wave Launching**: Launch only ready frontier lanes within budget constraints.
+  - Mark downstream lanes with unmet dependencies as blocked (`state: blocked`, `blocked_reason: dependency`).
+  - Mark ready lanes deferred by policy or capacity as held (`state: held`, `held_reason: concurrency_budget`).
 
 ---
 
@@ -48,7 +50,9 @@ Skill does NOT maintain a persistent runtime state store. It consumes status upd
 
 ### Incremental Replanning Rules
 1. **Preserve `done` Lanes / Freeze `integrated` Lanes**: Preserve `done` lanes while awaiting main-thread integration. Once `integrated`, freeze them. Never re-plan or re-run completed lanes unless a shared contract has explicitly changed.
-2. **Dependency Satisfaction**: Downstream dependencies are satisfied ONLY when prerequisite lanes reach `integrated` state (or when an explicitly frozen contract artifact is available).
+2. **Dependency Satisfaction**:
+   - Prerequisite Lane dependencies are satisfied ONLY when prerequisite lanes reach `integrated` state.
+   - Referenced Shared Contract dependencies are satisfied as soon as the owner lane publishes a `frozen` contract artifact.
 3. **Incremental Frontier Recalculation**: When status updates arrive:
    - Mark integrated lanes as `integrated`.
    - Re-evaluate downstream lanes (`depends_on`).

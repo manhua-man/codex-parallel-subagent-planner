@@ -1,4 +1,4 @@
-# parallel-subagent-planner (v2.0.3)
+# parallel-subagent-planner (v2.0.4)
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
@@ -24,6 +24,7 @@ Task ➔ Plan ➔ Launch ➔ Observe ➔ Replan ➔ Integrate ➔ Evolve
 - **Lane Ready Gate 准入检查**：每个候选 Lane 必须在启动前明确定义 6 项核心要素 (`Goal`, `Read`, `Write`, `Deliverable`, `Depends on`, `Acceptance`) 以及控制元数据 (`ID`, `Role`, `Ignore`, `Model profile`, `State`, `Reason`)。
 - **4 大标准角色体系**：针对 `explorer` (只读调查)、`implementer` (限定修改)、`reviewer` (Diff 与风险审计) 和 `migrator` (Schema 与 API 迁移) 提供特化指令。
 - **可控的能力沉淀 (Agent Evolution)**：任务集成后评估反复出现的 Subagent 角色（`promotion_check: silent` 默认，详见 `references/agent-evolution.md`），并在取得用户明确授权后生成 `.codex/agents/<name>.toml` 配置。
+- **全自动失败诊断记录**：在主线程集成步骤（Integrate），若子 Agent 执行失败、发生 Scope 越界或测试未通过，主线程 AI 自动捕获失败并诊断根因，将 5 行格式化卡片直接追加写入 `failures.md`（100% 零人工参与）。
 
 ---
 

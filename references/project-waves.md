@@ -62,11 +62,24 @@ Skill does NOT maintain a persistent runtime state store. It consumes status upd
 
 ---
 
-## 4. Main Thread Integration & Environment Handling
+## 4. Main Thread Integration & Automatic Diagnostic Logging
 
-Child lanes execute in isolated scopes and perform only lane-local checks:
+Child lanes execute in isolated scopes and perform only lane-local checks.
+
+### Environment Handling
 - **Sandbox Handling**: When the host provides isolated sandboxes or worktrees, execute child lanes inside them. Otherwise, preserve logical isolation through strict ownership scopes (`Read`, `Write`, `Ignore`).
-- **Main Thread Responsibilities**:
-  - Merge child lane deliverables into the target repository.
-  - Run workspace-wide verification and cross-module integration test suites.
-  - Transition lanes from `done` to `integrated` and trigger incremental replanning for the next wave.
+
+### Integration Responsibilities
+- Merge child lane deliverables into the target repository.
+- Run workspace-wide verification and cross-module integration test suites.
+- Transition lanes from `done` to `integrated` and trigger incremental replanning for the next wave.
+
+### Zero-Human Automated Diagnostic Logging
+During the `Integrate` step, if any child lane fails, violates scope boundaries, or fails acceptance tests:
+1. **Main Thread Captures Failure**: Automatically detects the lane error, boundary violation, or test failure.
+2. **Automatic Failure Diagnosis**: Runs automated root cause analysis matching the failure to specific planning rules.
+3. **Appends to `failures.md`**: Automatically appends a 5-line failure card entry to `failures.md` (requires 100% zero-human intervention).
+
+```text
+Child Lane Fails / Boundary Violated / Test Fails ➔ Main Thread Captures Failure ➔ AI Failure Diagnosis ➔ Auto-appends to failures.md
+```

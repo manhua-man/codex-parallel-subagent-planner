@@ -20,9 +20,11 @@ Always exclude system noise and parallel sibling scopes:
 
 ---
 
-## 2. Canonical 4 Role System
+## 2. Canonical 4 Role System & Extensibility
 
-Role selection directly dictates the subagent's directives:
+Role selection directly dictates the subagent's directives.
+
+The 4 canonical roles are **recommended built-in defaults** covering standard software workflows. When a task requires a specialized domain role (e.g., `docs_writer` or `performance_profiler`), planners may assign custom role names provided they specify explicit `Goal`, `Read`, `Write`, `Ignore`, and role directives.
 
 - **`explorer`**: Read-only discovery, dependency mapping, and root cause analysis. (Must NOT edit files; returns findings).
 - **`implementer`**: Bounded feature implementation, bug fixes, or refactoring within assigned `Write` scope.
@@ -33,6 +35,7 @@ Role selection directly dictates the subagent's directives:
 - Read-only investigation ➔ `explorer` or `reviewer`
 - Feature / Bug code edits ➔ `implementer`
 - Schema / API migration ➔ `migrator`
+- Specialized domain work (e.g., docs, performance) ➔ Custom role with explicit boundaries
 - Final integration ➔ Main Thread (not a subagent role)
 
 ---
@@ -42,7 +45,7 @@ Role selection directly dictates the subagent's directives:
 When writing prompts for child subagents, use this template:
 
 ```text
-Role: [explorer | implementer | reviewer | migrator]
+Role: [explorer | implementer | reviewer | migrator | custom_role]
 Goal: [one narrow outcome]
 Working directory: [target repository]
 Read: [files or directories to inspect]

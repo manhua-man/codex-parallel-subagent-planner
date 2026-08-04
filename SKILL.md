@@ -10,7 +10,7 @@ description: >-
   coding-agent backends.
 ---
 
-# Parallel Subagent Planner (v2.0.6 Lean Harness Skill)
+# Parallel Subagent Planner (v2.0.7 Lean Harness Skill)
 
 Decide whether subagents materially help, split accepted work into bounded lanes, hold coupled work, schedule project work in waves, and guide Codex execution.
 
@@ -48,7 +48,7 @@ Every candidate lane MUST pass the Lane Ready Gate by defining all 6 canonical R
 
 Read [references/context-and-prompts.md](references/context-and-prompts.md) for context layers and prompt templates.
 
-Assign each lane an explicit canonical role (`explorer`, `implementer`, `reviewer`, `migrator`), `Read`, `Write`, `Ignore` (system noise + sibling scopes), and model profile:
+Assign each lane a role (prefer built-in canonical defaults `explorer`, `implementer`, `reviewer`, `migrator`, or define a bounded custom role if required), `Read`, `Write`, `Ignore` (system noise + sibling scopes), and model profile:
 - `deep`: ambiguous root cause, security-sensitive work, shared contracts, high-risk integration.
 - `balanced`: bounded feature implementation, ordinary refactoring, standard feature development.
 - `fast`: read-only scans, information extraction, evidence collection, deterministic transformations.

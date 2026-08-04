@@ -1,4 +1,4 @@
-# parallel-subagent-planner (v2.0.6)
+# parallel-subagent-planner (v2.0.7)
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
@@ -22,7 +22,7 @@ Task ➔ Plan ➔ Launch ➔ Observe ➔ Replan ➔ Integrate ➔ Evolve
 
 - **Skill 是认知层，Runtime 是执行层**：Skill 负责任务结构理解、Lane 规划、上下文边界工程与角色演进；具体代码修改、线程调度与物理执行由 Codex Runtime 掌管。
 - **Lane Ready Gate 准入检查**：每个候选 Lane 必须在启动前明确定义 6 项核心要素 (`Goal`, `Read`, `Write`, `Deliverable`, `Depends on`, `Acceptance`) 以及控制元数据 (`ID`, `Role`, `Ignore`, `Model profile`, `State`, `Reason`)。
-- **4 大标准角色体系**：针对 `explorer` (只读调查)、`implementer` (限定修改)、`reviewer` (Diff 与风险审计) 和 `migrator` (Schema 与 API 迁移) 提供特化指令。
+- **标准角色体系与可扩展性**：提供 `explorer` (只读调查)、`implementer` (限定修改)、`reviewer` (Diff 与风险审计) 和 `migrator` (Schema 与 API 迁移) 4 大预置默认角色，同时支持在明确边界前提下扩展领域特化角色。
 - **可控的能力沉淀 (Agent Evolution)**：任务集成后评估反复出现的 Subagent 角色（`promotion_check: silent` 默认，详见 `references/agent-evolution.md`），并在取得用户明确授权后生成 `.codex/agents/<name>.toml` 配置。
 
 ---

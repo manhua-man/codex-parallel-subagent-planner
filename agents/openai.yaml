@@ -1,4 +1,4 @@
 interface:
-  display_name: "Parallel Subagent Planner"
-  short_description: "Split Codex work into safe independent execution lanes."
-  default_prompt: "Use $parallel-subagent-planner to decide whether subagents help, launch only bounded independent lanes, hold coupled work, and return a compact integration plan."
+  display_name: Parallel Subagent Planner
+  short_description: Plan safe subagent execution, lane boundaries, context limits, and waves for Codex.
+  default_prompt: Plan parallel subagents for this task.

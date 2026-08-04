@@ -1,69 +1,78 @@
-# Agent Evolution & Candidate Lifecycle
+# Agent Evolution & Custom Agent Candidates
 
-Use this reference when evaluating whether a completed subagent role should evolve into a persistent custom agent spec (`.codex/agents/<name>.toml`).
+Use this reference when evaluating whether a recurring subagent role should evolve into a persistent custom agent spec (`.codex/agents/<name>.toml`).
 
-## Core Philosophy
+## Practical Candidate Evolution Flow
 
-Not every subagent role deserves to become a permanent custom agent. Creating custom agents for temporary tasks pollutes the agent ecosystem with low-value, one-off scripts.
+Subagents created for temporary, feature-specific tasks must NEVER be promoted into persistent custom agents.
 
-Agent Evolution enforces a strict 5-stage candidate lifecycle:
+A subagent role evolves into a persistent custom agent through a practical 4-step flow:
 
 ```text
-┌────────────────────────────────────────────────────────┐
-│               Agent Candidate Lifecycle                │
-│                                                        │
-│   Candidate ──► Review ──► Approved ──► Persistent ──► Retire │
-└────────────────────────────────────────────────────────┘
+Identify recurring role pattern ➔ Audit against quality filters ➔ Obtain user explicit approval ➔ Generate .toml spec
 ```
 
 ---
 
-## The 5-Stage Candidate Lifecycle
+## 1. Candidate Quality Filters
 
-1. **Candidate**: A subagent role executes successfully and exhibits potential reuse.
-2. **Review**: The planner audits the role against 4 candidate quality filters.
-3. **Approved**: The role passes all filters and is reported to the user (max 1 per run).
-4. **Persistent Agent**: The user explicitly approves candidate creation; `.codex/agents/<name>.toml` is generated.
-5. **Retire**: A persistent agent whose stewardship is obsolete or subsumed by a broader role is flagged for deletion.
+Promote a candidate ONLY when ALL 4 quality filters are satisfied:
 
----
-
-## The 4 Candidate Quality Filters
-
-Promote a candidate ONLY when ALL 4 quality filters pass:
-
-1. **Frequency**: The exact same stewardship or verification pattern has appeared 2+ times across tasks or releases.
-2. **Stability**: The role has stable, well-bounded `read_scope` and `write_scope` definitions.
+1. **Frequency**: The exact same stewardship or verification pattern has appeared 2+ times across session history or past tasks.
+2. **Stability**: The role has stable, well-bounded `Read` and `Write` scope definitions.
 3. **Boundary**: The role operates with explicit, objective pass/fail acceptance checks.
-4. **Reuse Value**: Creating a dedicated agent eliminates repeated manual prompt setup and yields high recurring value.
+4. **Reuse Value**: Creating a dedicated custom agent eliminates repeated manual prompt setup and yields clear recurring value.
 
----
-
-## Strict Rejection List (DO NOT PROMOTE)
-
-Reject candidate evolution if ANY of the following apply:
-- ❌ **Temporary Feature Workers**: Roles created for a specific feature or temporary task (e.g. `payment-refactor-agent`, `login-fix-agent`).
+### Rejection List (DO NOT PROMOTE)
+- ❌ **Temporary Feature Workers**: Roles created for a specific feature or temporary task (e.g., `payment-refactor-agent`, `login-fix-agent`).
 - ❌ **Single-Use Unblockers**: Temporary agents launched solely to unblock a single task dependency.
 - ❌ **Vague Boundaries**: Generic "coder" or "researcher" roles with no stable quality invariant.
 - ❌ **Unstable Specs**: Roles whose behavior, inputs, or acceptance checks change with every task.
 
 ---
 
-## Machine Schema Representation (v1.6)
+## 2. Policy Settings (`promotion_check`)
 
-In Machine Schema Mode (`schema_version: "1.6"`), represent candidate evolution using the updated `promotion_candidates` array:
+- `promotion_check: off` — do not evaluate candidate promotion.
+- `promotion_check: silent` (default) — evaluate candidates internally; report high-confidence candidates in a concise section at the end of output.
+- `promotion_check: ask` — list all qualified candidates and evidence after integration.
 
-```json
-{
-  "promotion_candidates": [
-    {
-      "role": "api_contract_reviewer",
-      "reason": "Repeated API backward-compatibility reviews detected.",
-      "confidence": "high",
-      "lifecycle_stage": "approved",
-      "reuse_value": "high",
-      "requires_user_approval": true
-    }
-  ]
-}
+Multiple candidates may be reported together when qualified.
+
+---
+
+## 3. Strict User Approval Rule
+
+**Hard Requirement**: NEVER create, write, or modify any custom agent `.toml` file without explicit user confirmation.
+
+Persistent custom agent storage locations:
+- Personal custom agents: `~/.codex/agents/<agent-name>.toml`
+- Project custom agents: `.codex/agents/<agent-name>.toml`
+
+### Sample Custom Agent `.toml` Template
+
+```toml
+name = "api_contract_reviewer"
+description = "Maintains API backward compatibility and checks route contract invariants."
+model = "gpt-5.6-terra"
+sandbox_mode = "workspace-write"
+
+developer_instructions = """
+Review API schema modifications, report backward-incompatible changes, and verify route contracts.
+Do not modify contract specifications without explicit user approval.
+"""
+```
+
+---
+
+## 4. Reporting Format
+
+When candidate roles pass all quality filters:
+
+```text
+Long-term agent candidates:
+- api_contract_reviewer — maintains API backward compatibility and route contract invariants.
+- migration_compatibility_reviewer — checks database schema migrations and consumer compatibility.
+
+Creation requires explicit user approval. Do you want me to generate these custom agent specs?
 ```

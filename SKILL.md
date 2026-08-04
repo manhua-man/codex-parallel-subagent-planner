@@ -4,148 +4,122 @@ description: >-
   Plan safe Codex subagent execution for bounded coding tasks and multi-module
   software work. Use when deciding whether parallel agents would help, splitting
   an accepted implementation goal into independent lanes, mapping dependencies
-  and shared write boundaries, scheduling project work in waves, outputting a
-  machine-readable schema plan, evaluating long-term agent candidates, or
-  generating bounded non-recursive child prompts. Do not use it to define
-  product requirements, approve architecture, replace specification workflows, or
-  route work to external coding-agent backends.
+  and shared write boundaries, scheduling project work in waves, or evaluating
+  long-term custom agent candidates. Do not use it to define product requirements,
+  approve architecture, replace specification workflows, or route work to external
+  coding-agent backends.
 ---
 
-# Parallel Subagent Planner (v1.0.0 Mature Harness Skill)
+# Parallel Subagent Planner (v2.0.0 Lean Harness Skill)
 
-Decide whether subagents materially help, split accepted implementation work into bounded lanes, hold coupled work, and schedule multi-module projects in dependency-safe waves.
+Decide whether subagents materially help, split accepted work into bounded lanes, hold coupled work, schedule project work in waves, and guide Codex execution.
 
 ## 1. Choose Task Or Project Mode
 
 Use **task mode** for one bounded change, one module, or already-named lanes under one accepted task.
 
-Use **project mode** when any one is true:
-- The goal spans multiple modules, services, packages, routes, or testable capabilities.
-- Building, migrating, or finishing a complete product or application.
-- Several modules are visible but dependencies, shared contracts, or ownership are not yet mapped.
+Use **project mode** when the goal spans multiple modules, services, or packages. Read [references/project-waves.md](references/project-waves.md) to discover product surfaces, map module dependencies, and assign shared contract owners before launching waves.
 
-In project mode, read [references/project-scale-planning.md](references/project-scale-planning.md). Map the full product surface, assign shared contract owners, and compute the parallel frontier before launching workers. If scope is unclear, launch one read-only discovery lane first and hold implementation. Never silently reduce a project request to a single module.
+## 2. Decide Direct Execution Or Subagents
 
-## 2. Decide Whether To Split & Apply Planning Principles
-
-Read [references/planning-principles.md](references/planning-principles.md) for senior-engineering planning principles.
-
-Consider subagents only when independent workstreams reduce wall-clock time or a read-only lane de-risks implementation.
+Never split for the sake of splitting. Split only if independent workstreams reduce wall-clock time or a read-only investigation de-risks implementation.
 
 Split only if ALL of the following are true:
 - Workstreams are genuinely independent.
-- Each lane has a clear goal, bounded scope, deliverable, and acceptance check.
+- Every lane passes the Lane Ready Gate with clear goal, scopes, deliverable, and acceptance.
 - Write scopes are disjoint with zero overlap (`write(A) ∩ write(B) = ∅`).
-- No lane reads a file currently being modified by another lane (`write(A) ∩ read(B) = ∅`).
+- No lane reads a file currently being edited by another lane (`write(A) ∩ read(B) = ∅`).
 
-If any condition fails or there is no strong parallel benefit, do NOT split: execute directly in the main thread.
+If any condition fails or there is no strong parallel benefit, execute directly in the main thread.
 
-## 3. Define Safe Lanes, Slicing Strategy & Context Budget
+## 3. Build Ready Lanes
 
-Read [references/decomposition.md](references/decomposition.md) for decomposition heuristics and lane quality criteria. Read [references/context-engineering.md](references/context-engineering.md) for context budget rules.
+Read [references/lane-planning.md](references/lane-planning.md) for decomposition heuristics and ready gate rules.
 
-Select the optimal slicing strategy based on codebase structure:
-- **Vertical Split (End-to-End Capability)**: Groups UI, API, DTOs, and tests for a single user feature into one lane (e.g. `user-profile-capability`). Recommended for product feature requests to prevent inter-agent deadlocks.
-- **Horizontal Split (Decoupled Module)**: Separates distinct, independent modules or services (e.g. Payment vs. Notification vs. Search) operating on disjoint packages.
+Choose slicing strategy based on codebase coupling:
+- **Vertical Split (End-to-End Capability)**: Groups UI, API, and tests for a user feature into one lane (e.g., `user-profile-capability`) to prevent inter-agent deadlocks.
+- **Horizontal Split (Decoupled Module)**: Separates distinct, independent packages (e.g., Payment vs Notification).
 
-Every candidate lane MUST satisfy 6 quality criteria: Single Goal, Clear Input, Clear Output, Bounded Scope, Independent Progress, and Verifiable Acceptance.
+Every candidate lane MUST pass the Lane Ready Gate by defining all 6 canonical fields: `Goal`, `Read`, `Write`, `Deliverable`, `Depends on`, and `Acceptance`.
 
-Define Context Boundaries:
-- `read_scope`: explicit file paths or directory subtrees (`src/auth/**`).
-- `write_scope`: explicit write targets (`src/auth/service.ts`).
-- `ignore_scope`: explicit noise boundaries (`node_modules/**`, `dist/**`, `.git/**`, and sibling lane directories).
+**Shared Contract Rule**: Every shared API, database schema, route registry, migration, or global config must have exactly ONE owner lane per wave. Consumers may read established contracts but must not edit them concurrently.
 
-Assign each lane an explicit role (`explorer`, `worker`, `verifier`, or `default`), read/write/ignore scopes, deliverable, acceptance criteria, and model profile:
-- `deep`: ambiguous root cause, security-sensitive work, complex shared contracts, high-risk integration, final review.
-- `balanced`: bounded implementation, ordinary refactoring, standard feature development, targeted verification.
+## 4. Assign Context, Role And Model Profile
+
+Read [references/context-and-prompts.md](references/context-and-prompts.md) for context layers and prompt templates.
+
+Assign each lane an explicit canonical role (`explorer`, `implementer`, `reviewer`, `migrator`), `Read`, `Write`, `Ignore` (system noise + sibling scopes), and model profile:
+- `deep`: ambiguous root cause, security-sensitive work, shared contracts, high-risk integration.
+- `balanced`: bounded feature implementation, ordinary refactoring, standard feature development.
 - `fast`: read-only scans, information extraction, evidence collection, deterministic transformations.
 
 Model mappings and host capability rules are defined in [references/runtime-compatibility.md](references/runtime-compatibility.md).
 
-**Shared Contract Rule**: Every shared API, database schema, route registry, migration, or global config must have exactly ONE owner lane per wave. Consumers may read established contracts but must not edit them concurrently.
+## 5. Launch Or Hold
 
-## 4. Launch Or Hold
-
-Use the minimum viable lane count. When ready lanes exceed concurrency budget:
+Use the minimum viable lane count. Compute the **Frontier** (lanes ready to launch right now). When ready lanes exceed concurrency budget:
 1. Launch critical-path work first.
-2. Launch lanes that unblock the most downstream work.
+2. Launch lanes that unblock downstream work.
 3. Launch low-risk independent work.
-4. Hold lanes whose context or integration cost exceeds their wall-clock benefit.
+4. Hold lanes whose context or integration cost exceeds wall-clock benefit (`state: held`).
 
-Hold any lane that touches another lane's files, depends on uncompleted investigation or shared contracts, or lacks clear acceptance. See [references/planner-details.md](references/planner-details.md) for lane mechanics.
+Hold any lane touching another lane's files, depending on uncompleted investigation, or lacking clear acceptance.
 
-## 5. Write Child Prompts & Apply Prompt Specialization
+## 6. Integrate And Replan
 
-Read [references/prompt-strategy.md](references/prompt-strategy.md) for specialized role-tailored prompt templates (Explorer, Implementer, Reviewer, Migrator).
-
-Child prompts must be short, non-recursive, and isolated:
-
-```text
-Goal: [one narrow outcome]
-Working directory: [target repository]
-Read first: [bounded files or directories]
-Write: [exact files or directories, or none]
-Ignore: [node_modules/**, dist/**, .git/**, sibling lane dirs]
-Acceptance: [lane-local checks]
-
-Boundary:
-- Work only inside this lane.
-- Do not launch or delegate to other agents.
-- Do not edit outside Write.
-- Stop and report when another scope is required.
-- Run only lane-local verification.
-- Return changes, checks, risks, and handoff notes.
-```
-
-Role-specific prompt templates are provided in [references/prompt-templates.md](references/prompt-templates.md).
-
-## 6. Integrate And Replan (State-Aware Incremental Replanning)
-
-Read [references/planning-state.md](references/planning-state.md) for state-aware incremental replanning guidelines.
-
-In task mode: wait for child lanes to complete, integrate changes, and run main-thread verification.
+In task mode: wait for child lanes to complete, merge deliverables, and run main-thread verification.
 
 In project mode: after each wave completes or when status updates arrive:
 - Freeze completed lanes (`done` or `integrated`).
 - Do not re-plan the entire project from scratch.
 - Recalculate ONLY affected downstream lanes and unblocked dependencies to form the next parallel frontier.
 
+Main thread is 100% responsible for final integration and global workspace verification.
+
 ## 7. Output Modes
 
 ### Compact (Default)
 Return Compact by default for human review:
-1. **Why split or not split**: brief rationale.
-2. **Launch now**: list of ready lanes with model profiles, slicing strategies, and scopes.
-3. **Held lanes**: list of held lanes with specific hold reasons.
-4. **Integration note**: main thread verification and integration sequence.
+- **Decision**: brief rationale on why to split or execute directly.
+- **Launch now**: list of ready frontier lanes with roles, model profiles, and scopes.
+- **Hold**: list of held lanes with specific hold reasons.
+- **Integration**: main thread verification and integration sequence.
+- **Agent candidates**: optional concise list when high-confidence candidates exist.
 
 ### Full
 Return Full when requested or during complex diagnostic reviews:
-1. Scale decision, surface map, planning state, context budget, and slicing strategy (vertical vs horizontal).
-2. Complete lane table with dependencies & contract owners.
-3. Current wave & ready child prompts.
-4. Integration and replan instructions.
+- Project scale decision, surface map, global constraints, and slicing strategy.
+- Complete lane table with dependencies and contract owners.
+- Current Frontier and ready child prompts.
+- Integration sequence, incremental replanning rules, and long-term agent candidates.
 
-### Machine
-Return Machine JSON only when explicitly requested, when another program will consume the result, or when downstream schedulers require a versioned contract:
-- Follow `schema/planner-plan.schema.json` with `"schema_version": "1.6"`.
-- Read [references/machine-schema.md](references/machine-schema.md) for protocol details and boundaries.
-- Do not include Markdown fences or conversational text.
+## 8. Evaluate Long-Term Agent Candidates
 
-## 8. Long-Term Agent Candidates & Evolution
+Read [references/agent-evolution.md](references/agent-evolution.md) for candidate quality auditing rules.
 
-Read [references/agent-evolution.md](references/agent-evolution.md) for full candidate quality auditing and lifecycle management.
-
-After completing integration, optionally evaluate whether a subagent role qualifies as a reusable custom agent.
-
-Only propose promotion when:
-- The same bounded stewardship or verification responsibility has appeared repeatedly (2+ times).
-- Its scope, inputs, outputs, and acceptance checks are stable.
-- A dedicated agent would eliminate repeated manual setup.
+After integration, evaluate whether recurring subagent roles pass the 4 candidate quality filters (`Frequency` 2+, `Stability`, `Boundary`, `Reuse Value`).
 
 **Policy Settings** (`promotion_check`):
 - `off`: do not evaluate promotion.
-- `silent` (default): evaluate internally; report a candidate only when a high-confidence recurring role exists (`confidence: high`).
-- `ask`: explicitly report qualified candidates after integration.
+- `silent` (default): evaluate internally; report high-confidence candidates in a concise section at the end of output.
+- `ask`: explicitly report all qualified candidates after integration.
 
-Never propose more than one candidate per run. Never generate or write a custom agent `.toml` file without explicit user approval. Read [references/long-term-agents.md](references/long-term-agents.md) when a qualified candidate exists or when creating a persistent agent spec.
+Multiple qualified candidates may be reported together.
+
+**Hard Requirement**: NEVER create, write, or modify any custom agent `.toml` file without explicit user approval.
+
+---
+
+## Canonical Safety Rules
+
+1. Do not split for the sake of splitting.
+2. Write scopes in the same wave must never overlap (`write ∩ write = ∅`).
+3. No lane may read a file currently being modified by another lane (`write ∩ read = ∅`).
+4. Each shared contract has exactly ONE owner lane per wave.
+5. No lane may launch until it passes the Lane Ready Gate.
+6. When boundaries are ambiguous, launch ONE read-only `explorer` first.
+7. Use the minimum viable lane count.
+8. Subagents must never recursively launch or delegate to other agents.
+9. Main thread is 100% responsible for final integration and global verification.
+10. Only replan affected downstream lanes upon incremental updates.
+11. Never create or edit persistent custom agent `.toml` files without explicit user approval.

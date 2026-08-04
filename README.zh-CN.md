@@ -1,48 +1,29 @@
-# parallel-subagent-planner (v1.0.0)
+# parallel-subagent-planner (v2.0.0)
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-`parallel-subagent-planner` 是一个注入 Agent Runtime 的 **Planning Harness Skill**（Codex 并行规划认知控制层），让 Codex 在复杂任务中拥有类似资深工程师的任务拆解、上下文控制、协作规划、特化提示词与能力沉淀能力。
+`parallel-subagent-planner` 是一个轻量级的 **Agent Planning Harness Skill**，帮助 Codex 在复杂任务中决策何时使用子 Agent、构建安全的执行 Lane、控制上下文边界、按依赖调度波次，并发现可复用的长期 Agent 角色。
 
 ---
 
-## 总体架构 (Harness Architecture)
+## 核心循环架构
 
 ```text
-                         Harness Skill
+Task ➔ Plan ➔ Launch ➔ Observe ➔ Replan ➔ Integrate ➔ Evolve
 
-
-                              |
-
-        ------------------------------------------------
-
-        Planner        Planning State        Memory
-
-           |                 |                 |
-
-        Policy          Machine Schema     Agent Evolution
-
-
-                              |
-
-                     Planning Protocol
-
-
-                              |
-
-                    Codex / Agent Runtime
-
-
-                              |
-
-                           Agents
+        Skill 指导 (认知与策略层)
+                    │
+       Codex Agent Runtime (物理执行层)
+                    │
+            子 Agent (Child Workers)
 ```
 
 ### 核心设计原则
 
-- **Skill 是认知层，Runtime 是执行层**：Skill 负责任务结构理解、多 Agent 协作规划、上下文预算分配与能力沉淀；具体代码修改、线程调度与物理执行由 Codex Runtime 掌管。
-- **机器计划协议 (Machine Schema v1.6)**：Machine 模式遵循 `schema/planner-plan.schema.json` (`schema_version: "1.6"`，详见 `references/machine-schema.md`) 输出纯 JSON，为后续调度器或自动化工具提供稳定、带版本的数据契约。
-- **可控的能力沉淀 (Long-Term Agent Evolution)**：通过 5 阶段生命周期 (`Candidate` ➔ `Review` ➔ `Approved` ➔ `Persistent Agent` ➔ `Retire`) 评估反复出现的 Subagent 角色（`promotion_check: silent` 默认，单次最多 1 个候选，详见 `references/agent-evolution.md`），并在用户明确授权后生成 `.codex/agents/<name>.toml` 配置。
+- **Skill 是认知层，Runtime 是执行层**：Skill 负责任务结构理解、Lane 规划、上下文边界工程与角色演进；具体代码修改、线程调度与物理执行由 Codex Runtime 掌管。
+- **Lane Ready Gate 准入检查**：每个候选 Lane 必须在启动前明确定义 6 项核心要素 (`Goal`, `Read`, `Write`, `Deliverable`, `Depends on`, `Acceptance`)。
+- **4 大标准角色体系**：针对 `explorer` (只读调查)、`implementer` (限定修改)、`reviewer` (Diff 与风险审计) 和 `migrator` (Schema 与 API 迁移) 提供特化指令。
+- **可控的能力沉淀 (Agent Evolution)**：任务集成后评估反复出现的 Subagent 角色（`promotion_check: silent` 默认，详见 `references/agent-evolution.md`），并在取得用户明确授权后生成 `.codex/agents/<name>.toml` 配置。
 
 ---
 
@@ -69,9 +50,8 @@
 
 ## 输出模式 (Output Modes)
 
-- **Compact**（默认）：面向人类阅读的摘要（`Why split`、`Launch now`、`Held lanes`、`Integration note`）。
-- **Full**：完整文本计划（包含 Lane 表格、契约 Owner、阶段 Frontier、上下文预算与 Child Prompts）。
-- **Machine**：遵循 `schema/planner-plan.schema.json` 规范的纯 JSON 输出 (`schema_version: "1.6"`)。
+- **Compact**（默认）：面向人类阅读的摘要（`Decision`, `Launch now`, `Hold`, `Integration`, 可选 `Agent candidates`）。
+- **Full**：完整文本计划（包含 Lane 表格、契约 Owner、切分策略、上下文边界与 Child Prompts）。
 
 ---
 
@@ -103,44 +83,17 @@ parallel-subagent-planner/
 ├─ SKILL.md
 ├─ agents/
 │  └─ openai.yaml
-├─ schema/
-│  └─ planner-plan.schema.json
 ├─ references/
-│  ├─ decomposition.md
-│  ├─ planning-state.md
-│  ├─ context-engineering.md
-│  ├─ prompt-strategy.md
-│  ├─ planning-principles.md
+│  ├─ lane-planning.md
+│  ├─ project-waves.md
+│  ├─ context-and-prompts.md
 │  ├─ agent-evolution.md
-│  ├─ planner-details.md
-│  ├─ project-scale-planning.md
-│  ├─ machine-schema.md
-│  ├─ long-term-agents.md
-│  ├─ prompt-templates.md
-│  ├─ runtime-compatibility.md
-│  └─ roadmap.md
+│  └─ runtime-compatibility.md
 ├─ README.md
 ├─ README.zh-CN.md
 ├─ CHANGELOG.md
 └─ LICENSE
 ```
-
----
-
-## 路线图概览 (Roadmap Summary)
-
-| 版本 | 核心能力 | 架构层 | 状态 |
-| --- | --- | --- | --- |
-| **v0.3.0** | Planning Protocol (任务/项目划分、Wave调度、Machine Schema v1.0、Agent Candidate) | Planner | 已发布 |
-| **v0.4.0** | Decomposition Intelligence (纵向切分 Vertical Split / 横向切分 Horizontal Split / Lane 质量检查 / Schema v1.1) | Planner | 已发布 |
-| **v0.5.0** | Planning State Awareness (规划状态感知，增量计算 Frontier / Schema v1.2) | State | 已发布 |
-| **v0.6.0** | Context Harness (上下文预算工程，定义 Global / Lane / Noise Boundary `ignore_scope` / Schema v1.3) | Context | 已发布 |
-| **v0.7.0** | Prompt Specialization (特化提示词：Explorer / Implementer / Reviewer / Migrator / Schema v1.4) | Policy | 已发布 |
-| **v0.8.0** | Planning Principles (规划原则策略沉淀：资深工程师 5 大原则 / Schema v1.5) | Policy | 已发布 |
-| **v0.9.0** | Agent Evolution (长期 Agent 降噪与 5 阶段完整生命周期管理 / Schema v1.6) | Memory | 已发布 |
-| **v1.0.0** | Agent Planning Harness Skill (成熟体 Harness 认知控制层完全体) | 全部 | **v1.0.0 里程碑** |
-
-详见 [references/roadmap.md](references/roadmap.md)。
 
 ---
 

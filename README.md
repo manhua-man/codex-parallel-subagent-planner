@@ -1,48 +1,29 @@
-# parallel-subagent-planner (v1.0.0)
+# parallel-subagent-planner (v2.0.0)
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-`parallel-subagent-planner` is an **Agent Planning Harness Skill** (Codex Parallel Planning Intelligence Layer) that injects senior engineering cognitive capabilities into an Agent Runtime—guiding Codex on task decomposition, context budgeting, prompt specialization, wave scheduling, Machine Schema serialization (v1.6), and agent role evolution.
+`parallel-subagent-planner` is a lightweight **Agent Planning Harness Skill** that helps Codex decide when to use subagents, create safe execution lanes, control context boundaries, schedule dependency-safe waves, and discover reusable long-term agent roles.
 
 ---
 
-## Three-Layer Harness Architecture
+## Core Cycle Architecture
 
 ```text
-                         Harness Skill
+Task ➔ Plan ➔ Launch ➔ Observe ➔ Replan ➔ Integrate ➔ Evolve
 
-
-                              |
-
-        ------------------------------------------------
-
-        Planner        Planning State        Memory
-
-           |                 |                 |
-
-        Policy          Machine Schema     Agent Evolution
-
-
-                              |
-
-                     Planning Protocol
-
-
-                              |
-
-                    Codex / Agent Runtime
-
-
-                              |
-
-                           Agents
+      Skill Guidance (Cognitive Layer)
+                     │
+            Codex Agent Runtime (Execution Layer)
+                     │
+             Subagents (Child Workers)
 ```
 
 ### Core Design Principles
 
-- **Skill is the Cognitive Layer; Runtime is the Execution Layer**: Skill owns structure understanding, multi-agent collaboration planning, context budget allocation, and candidate evolution. Physical code modifications, thread handles, scheduling, and execution belong 100% to Codex Runtime.
-- **Machine Schema Protocol (v1.6)**: Machine mode outputs structured JSON adhering to `schema/planner-plan.schema.json` (`schema_version: "1.6"`, documented in `references/machine-schema.md`) so downstream tools and schedulers can consume plans through a stable data contract.
-- **Long-Term Agent Evolution**: Evaluates recurring subagent roles after integration (`promotion_check: silent` default, documented in `references/agent-evolution.md`) through a 5-stage lifecycle (`Candidate` ➔ `Review` ➔ `Approved` ➔ `Persistent Agent` ➔ `Retire`) and generates persistent `.codex/agents/<name>.toml` custom agent specs upon explicit user approval.
+- **Skill is the Cognitive Layer; Runtime is the Execution Layer**: Skill owns task structure understanding, lane planning, context boundary engineering, and role evolution. Physical code modifications, thread handles, scheduling, and execution belong 100% to Codex Runtime.
+- **Lane Ready Gate**: Every candidate lane must satisfy 6 core requirements (`Goal`, `Read`, `Write`, `Deliverable`, `Depends on`, `Acceptance`) before launching.
+- **Canonical 4 Role System**: Standardized directives for `explorer` (read-only discovery), `implementer` (bounded modifications), `reviewer` (diff & risk audit), and `migrator` (schema & API migration).
+- **Controlled Agent Evolution**: Evaluates recurring subagent roles after integration (`promotion_check: silent` default, documented in `references/agent-evolution.md`) and generates persistent `.codex/agents/<name>.toml` specs ONLY upon explicit user approval.
 
 ---
 
@@ -69,9 +50,8 @@ All physical execution, threading, tool calling, and IPC belong 100% to **Codex 
 
 ## Output Modes
 
-- **Compact** (Default): Human-readable summary (`Why split`, `Launch now`, `Held lanes`, `Integration note`).
-- **Full**: Comprehensive text plan with lane tables, contract owners, slicing strategies, context budgets, and ready child prompts.
-- **Machine**: Pure structured JSON output following `schema/planner-plan.schema.json` (`schema_version: "1.6"`).
+- **Compact** (Default): Human-readable summary (`Decision`, `Launch now`, `Hold`, `Integration`, optional `Agent candidates`).
+- **Full**: Comprehensive text breakdown with lane tables, contract owners, slicing strategies, context boundaries, and ready child prompts.
 
 ---
 
@@ -105,44 +85,17 @@ parallel-subagent-planner/
 ├─ SKILL.md
 ├─ agents/
 │  └─ openai.yaml
-├─ schema/
-│  └─ planner-plan.schema.json
 ├─ references/
-│  ├─ decomposition.md
-│  ├─ planning-state.md
-│  ├─ context-engineering.md
-│  ├─ prompt-strategy.md
-│  ├─ planning-principles.md
+│  ├─ lane-planning.md
+│  ├─ project-waves.md
+│  ├─ context-and-prompts.md
 │  ├─ agent-evolution.md
-│  ├─ planner-details.md
-│  ├─ project-scale-planning.md
-│  ├─ machine-schema.md
-│  ├─ long-term-agents.md
-│  ├─ prompt-templates.md
-│  ├─ runtime-compatibility.md
-│  └─ roadmap.md
+│  └─ runtime-compatibility.md
 ├─ README.md
 ├─ README.zh-CN.md
 ├─ CHANGELOG.md
 └─ LICENSE
 ```
-
----
-
-## Roadmap & Release Milestone (v1.0.0 Complete)
-
-| Version | Feature | Layer | Status |
-| --- | --- | --- | --- |
-| **v0.3.0** | Planning Protocol (Task/Project Scale Gate, Wave Scheduling, Machine Schema v1.0, Long-Term Candidate) | Planner | Released |
-| **v0.4.0** | Decomposition Intelligence (Vertical vs Horizontal Split, 6 Lane Quality Criteria, Machine Schema v1.1) | Planner | Released |
-| **v0.5.0** | Planning State Awareness (Incremental execution state understanding & frontier re-calculation, Schema v1.2) | State | Released |
-| **v0.6.0** | Context Harness (Context Budget Engineering & `ignore_scope` Noise Boundaries, Schema v1.3) | Context | Released |
-| **v0.7.0** | Prompt Specialization (Role-tailored templates: Explorer, Implementer, Reviewer, Migrator, Schema v1.4) | Policy | Released |
-| **v0.8.0** | Planning Principles (Formalized 5 senior-engineering principles, Schema v1.5) | Policy | Released |
-| **v0.9.0** | Agent Evolution (5-stage lifecycle, 4 quality filters: Frequency/Stability/Boundary/Reuse, Schema v1.6) | Memory | Released |
-| **v1.0.0** | Agent Planning Harness Skill (Mature Harness Intelligence Stack) | All Layers | **v1.0.0 Milestone** |
-
-For detailed roadmap descriptions, see [references/roadmap.md](references/roadmap.md).
 
 ---
 

@@ -1,32 +1,23 @@
-# Runtime Compatibility
+# Runtime & Model Compatibility
 
-This reference defines how generic planner requirements map to concrete host environments and model runtimes.
+Use this reference when assigning model profiles to execution lanes or mapping host capabilities.
 
-## Model Profiles Mapping
+## 1. Semantic Model Profiles
 
-The planner allocates models using semantic profiles (`model_profile`). This file is the single source of truth for mapping profiles to concrete model identifiers:
+`parallel-subagent-planner` uses semantic profiles rather than concrete model IDs. This decouples the skill from specific LLM model naming changes:
 
-| Model Profile | Default Model Identifier | Workload & Task Guidance |
-| --- | --- | --- |
-| `deep` | `gpt-5.6-sol` | Flagship model for ambiguous root cause analysis, security audits, complex shared contract design, high-risk cross-module integration, and final review |
-| `balanced` | `gpt-5.6-terra` | General-purpose model for routine module implementation, bounded refactoring, standard feature development, and targeted integration |
-| `fast` | `gpt-5.6-luna` | Fast/cheap model for read-only scans, information extraction, evidence collection, and deterministic transformations |
+- **`deep`**: Complex root cause analysis, security-sensitive work, shared contract design, high-risk integration, final review.
+- **`balanced`**: Bounded feature implementation, ordinary refactoring, standard feature development, targeted verification.
+- **`fast`**: Read-only scans, information extraction, evidence collection, deterministic transformations.
 
-## Reasoning Profiles
+The host runtime maps these semantic profiles to specific model identifiers.
 
-Reasoning effort is specified via `reasoning_profile`:
-- `auto`: Host default reasoning level.
-- `low`: Deterministic scans, mechanical edits.
-- `medium`: Bounded feature development or verification.
-- `high`: Ambiguous root cause, security review, or complex shared contract design.
+---
 
-## Host Capabilities
+## 2. Host Capability Handling
 
-The planner expresses agent execution requirements through generic host capabilities:
+Adapt execution lane definitions to the active host runtime's capabilities:
 
-- **`isolated_context`** (Required): Ability to spawn a child thread with a clean Context Brief (`fork_context=false`).
-- **`explicit_model`** (Preferred): Ability to specify a model identifier per child lane.
-- **`explicit_reasoning`** (Preferred): Ability to set explicit reasoning/thinking effort per child lane.
-- **`read_only_agent`** (Supported): Ability to enforce read-only tool access for discovery and audit lanes.
-
-If a host environment cannot pass explicit model or reasoning parameters on a child spawn tool, fall back to the host default or execute the lane directly in the main thread.
+- **Isolated Context**: If the host supports subagents with isolated context windows, assign strict `Read`, `Write`, and `Ignore` scopes per lane.
+- **Explicit Model Selection**: If the host allows specifying models per subagent, pass the recommended model profile (`deep`, `balanced`, `fast`).
+- **Read-Only Subagents**: If the host supports read-only subagent sandboxing, enforce zero write permissions (`write: none`) for `explorer` and `reviewer` lanes.

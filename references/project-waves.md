@@ -74,6 +74,4 @@ Child lanes execute in isolated scopes and perform only lane-local checks.
 - Merge child lane deliverables into the target repository.
 - Run workspace-wide verification and cross-module integration test suites.
 - Transition lanes from `done` to `integrated` and trigger incremental replanning for the next wave.
-- When a lane fails, violates scope, or fails acceptance, mark it `blocked` with an explicit `blocked_reason`.
-- Report failure evidence in the current response and replan only the affected lane and its downstream dependents.
-- Do not create or maintain persistent failure logs.
+- When a lane fails, violates scope, or fails acceptance, mark it `blocked` (`blocked_reason: verification_failed`) and replan only the affected lane and its downstream dependents.

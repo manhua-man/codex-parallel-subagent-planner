@@ -10,7 +10,7 @@ description: >-
   coding-agent backends.
 ---
 
-# Parallel Subagent Planner (v2.0.5 Lean Harness Skill)
+# Parallel Subagent Planner (v2.0.6 Lean Harness Skill)
 
 Decide whether subagents materially help, split accepted work into bounded lanes, hold coupled work, schedule project work in waves, and guide Codex execution.
 
@@ -80,7 +80,7 @@ In project mode: after each wave completes or when status updates arrive:
 - **`integrated`**: Main thread has merged deliverables and verified workspace integration. Freeze `integrated` lanes.
 - A downstream lane may launch only when every prerequisite lane is `integrated` and every referenced shared contract is `frozen`.
 - Recalculate ONLY affected downstream lanes and unblocked dependencies to form the next parallel frontier.
-- If a child lane fails, violates scope, or fails acceptance, mark it `blocked` with an explicit reason, report the failure in the current response, and replan only the affected work.
+- If a child lane fails, violates scope, or fails acceptance, mark it `blocked` (`blocked_reason: verification_failed`) and replan only the affected work.
 
 Main thread is 100% responsible for final integration and global workspace verification.
 

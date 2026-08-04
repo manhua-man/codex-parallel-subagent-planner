@@ -2,6 +2,11 @@
 
 All notable changes to the `parallel-subagent-planner` skill will be documented in this file.
 
+## [v2.0.6] - 2026-08-05
+
+### Streamlined Failure Handling Patch
+- **Streamlined In-Session Failure Handling**: Streamlined failure handling text in `SKILL.md` Section 6 and `references/project-waves.md` Section 4. When a child lane fails, violates scope, or fails acceptance, mark it `blocked` (`blocked_reason: verification_failed`) and replan only the affected lane and its downstream dependents.
+
 ## [v2.0.5] - 2026-08-05
 
 ### Scope Convergence Patch

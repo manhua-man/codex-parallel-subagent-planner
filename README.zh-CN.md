@@ -1,4 +1,4 @@
-# parallel-subagent-planner (v2.0.0)
+# parallel-subagent-planner (v2.0.1)
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
@@ -15,13 +15,13 @@ Task ➔ Plan ➔ Launch ➔ Observe ➔ Replan ➔ Integrate ➔ Evolve
                     │
        Codex Agent Runtime (物理执行层)
                     │
-            子 Agent (Child Workers)
+            子 Agent (Child Agents)
 ```
 
 ### 核心设计原则
 
 - **Skill 是认知层，Runtime 是执行层**：Skill 负责任务结构理解、Lane 规划、上下文边界工程与角色演进；具体代码修改、线程调度与物理执行由 Codex Runtime 掌管。
-- **Lane Ready Gate 准入检查**：每个候选 Lane 必须在启动前明确定义 6 项核心要素 (`Goal`, `Read`, `Write`, `Deliverable`, `Depends on`, `Acceptance`)。
+- **Lane Ready Gate 准入检查**：每个候选 Lane 必须在启动前明确定义 6 项核心要素 (`Goal`, `Read`, `Write`, `Deliverable`, `Depends on`, `Acceptance`) 以及控制元数据 (`ID`, `Role`, `Ignore`, `Model profile`, `State`, `Reason`)。
 - **4 大标准角色体系**：针对 `explorer` (只读调查)、`implementer` (限定修改)、`reviewer` (Diff 与风险审计) 和 `migrator` (Schema 与 API 迁移) 提供特化指令。
 - **可控的能力沉淀 (Agent Evolution)**：任务集成后评估反复出现的 Subagent 角色（`promotion_check: silent` 默认，详见 `references/agent-evolution.md`），并在取得用户明确授权后生成 `.codex/agents/<name>.toml` 配置。
 
@@ -50,7 +50,7 @@ Task ➔ Plan ➔ Launch ➔ Observe ➔ Replan ➔ Integrate ➔ Evolve
 
 ## 输出模式 (Output Modes)
 
-- **Compact**（默认）：面向人类阅读的摘要（`Decision`, `Launch now`, `Hold`, `Integration`, 可选 `Agent candidates`）。
+- **Compact**（默认）：面向人类阅读的摘要（`Decision`, `Launch now` [包含 Goal/Write/Deliverable/Acceptance], `Hold / Block`, `Integration`, 可选 `Agent candidates`）。
 - **Full**：完整文本计划（包含 Lane 表格、契约 Owner、切分策略、上下文边界与 Child Prompts）。
 
 ---

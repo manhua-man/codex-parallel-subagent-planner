@@ -1,4 +1,4 @@
-# parallel-subagent-planner (v2.0.0)
+# parallel-subagent-planner (v2.0.1)
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
@@ -15,13 +15,13 @@ Task ➔ Plan ➔ Launch ➔ Observe ➔ Replan ➔ Integrate ➔ Evolve
                      │
             Codex Agent Runtime (Execution Layer)
                      │
-             Subagents (Child Workers)
+             Subagents (Child Agents)
 ```
 
 ### Core Design Principles
 
 - **Skill is the Cognitive Layer; Runtime is the Execution Layer**: Skill owns task structure understanding, lane planning, context boundary engineering, and role evolution. Physical code modifications, thread handles, scheduling, and execution belong 100% to Codex Runtime.
-- **Lane Ready Gate**: Every candidate lane must satisfy 6 core requirements (`Goal`, `Read`, `Write`, `Deliverable`, `Depends on`, `Acceptance`) before launching.
+- **Lane Ready Gate**: Every candidate lane must satisfy 6 core requirements (`Goal`, `Read`, `Write`, `Deliverable`, `Depends on`, `Acceptance`) alongside Control Metadata (`ID`, `Role`, `Ignore`, `Model profile`, `State`, `Reason`) before launching.
 - **Canonical 4 Role System**: Standardized directives for `explorer` (read-only discovery), `implementer` (bounded modifications), `reviewer` (diff & risk audit), and `migrator` (schema & API migration).
 - **Controlled Agent Evolution**: Evaluates recurring subagent roles after integration (`promotion_check: silent` default, documented in `references/agent-evolution.md`) and generates persistent `.codex/agents/<name>.toml` specs ONLY upon explicit user approval.
 
@@ -50,7 +50,7 @@ All physical execution, threading, tool calling, and IPC belong 100% to **Codex 
 
 ## Output Modes
 
-- **Compact** (Default): Human-readable summary (`Decision`, `Launch now`, `Hold`, `Integration`, optional `Agent candidates`).
+- **Compact** (Default): Human-readable summary (`Decision`, `Launch now` with Goal/Write/Deliverable/Acceptance, `Hold / Block`, `Integration`, optional `Agent candidates`).
 - **Full**: Comprehensive text breakdown with lane tables, contract owners, slicing strategies, context boundaries, and ready child prompts.
 
 ---

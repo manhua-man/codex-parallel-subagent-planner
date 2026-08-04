@@ -18,7 +18,7 @@ Identify recurring role pattern ➔ Audit against quality filters ➔ Obtain use
 
 Promote a candidate ONLY when ALL 4 quality filters are satisfied:
 
-1. **Frequency**: The exact same stewardship or verification pattern has appeared 2+ times across session history or past tasks.
+1. **Frequency**: The exact same stewardship or verification pattern has appeared 2+ times across visible conversation history, user-provided logs, or host persistent memory. Never infer unseen past occurrences.
 2. **Stability**: The role has stable, well-bounded `Read` and `Write` scope definitions.
 3. **Boundary**: The role operates with explicit, objective pass/fail acceptance checks.
 4. **Reuse Value**: Creating a dedicated custom agent eliminates repeated manual prompt setup and yields clear recurring value.
@@ -41,9 +41,11 @@ Multiple candidates may be reported together when qualified.
 
 ---
 
-## 3. Strict User Approval Rule
+## 3. Strict User Approval Rule & Template Specification
 
 **Hard Requirement**: NEVER create, write, or modify any custom agent `.toml` file without explicit user confirmation.
+
+Map the recommended semantic profile (`deep`, `balanced`, `fast`) to a model supported by the active host.
 
 Persistent custom agent storage locations:
 - Personal custom agents: `~/.codex/agents/<agent-name>.toml`
@@ -54,7 +56,7 @@ Persistent custom agent storage locations:
 ```toml
 name = "api_contract_reviewer"
 description = "Maintains API backward compatibility and checks route contract invariants."
-model = "gpt-5.6-terra"
+model = "<host-supported-model-id>"
 sandbox_mode = "workspace-write"
 
 developer_instructions = """

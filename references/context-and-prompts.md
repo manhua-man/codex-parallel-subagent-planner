@@ -16,6 +16,7 @@ Subagent performance depends directly on context quality. Prevent context bloat 
 Always exclude system noise and parallel sibling scopes:
 - System Noise: `node_modules/**`, `dist/**`, `build/**`, `.git/**`, `.cache/**`, `*.log`, `tmp/**`.
 - Sibling Scopes: Directories owned by other parallel lanes running in the same wave.
+- **Reviewer Exception**: Ignore sibling scopes during concurrent implementation, unless a `reviewer` or integration lane is explicitly assigned frozen sibling outputs in its `Read` scope.
 
 ---
 
@@ -46,7 +47,7 @@ Goal: [one narrow outcome]
 Working directory: [target repository]
 Read: [files or directories to inspect]
 Write: [exact files or directories to edit, or none]
-Ignore: [node_modules/**, dist/**, .git/**, sibling lane directories]
+Ignore: [noise and sibling scopes]
 Deliverable: [expected result or audit report]
 Depends on: [completed handoff artifacts or none]
 Acceptance: [objective pass/fail test command]

@@ -15,20 +15,24 @@ Choose dynamically: prefer Vertical Split for user feature requests, and Horizon
 
 ## 2. Lane Ready Gate
 
-A candidate lane must NEVER be launched until it passes the Lane Ready Gate by defining all 6 canonical lane fields:
+A candidate lane must NEVER be launched until it passes the Lane Ready Gate by defining all 6 canonical Ready Gate fields alongside essential Control Metadata:
 
 ```text
-ID:           [Unique string identifier]
-Role:         [explorer | implementer | reviewer | migrator]
-Goal:         [Single narrow outcome]
-Read:         [Canonical file paths or subtrees to inspect]
-Write:        [Exact file paths or subtrees allowed for edits, or none]
-Ignore:       [Noise boundaries and sibling lane directories]
-Deliverable:  [Concrete code change or audit report]
-Depends on:   [Prerequisite lane IDs or completed contracts]
-Acceptance:   [Objective pass/fail test or verification check]
-State:        [ready | running | blocked | integrated | done | held]
-Hold reason:  [overlap | dependency | contract | unclear_scope | verification_failed]
+-- Six Ready Gate Fields (Prerequisites for Launch) --
+Goal:             [Single narrow outcome]
+Read:             [Canonical file paths or subtrees to inspect]
+Write:            [Exact file paths or subtrees allowed for edits, or none]
+Deliverable:      [Concrete code change or audit report]
+Depends on:       [Prerequisite lane IDs or integrated contract IDs]
+Acceptance:       [Objective pass/fail test or verification check]
+
+-- Six Control Metadata Fields (Planner Management) --
+ID:               [Unique string identifier]
+Role:             [explorer | implementer | reviewer | migrator]
+Ignore:           [Noise boundaries and sibling lane directories]
+Model profile:    [deep | balanced | fast]
+State:            [ready | running | blocked | integrated | done | held]
+Reason:           [blocked_reason | held_reason | null]
 ```
 
 Every Ready Lane satisfies:
@@ -45,7 +49,7 @@ Every Ready Lane satisfies:
 
 Frontier safety collision rules enforced in every wave:
 - **Write-Write Isolation**: `write(A) ∩ write(B) = ∅`. Two lanes in the same wave must never edit overlapping files or subtrees.
-- **Write-Read Isolation**: `write(A) ∩ read(B) = ∅`. A lane in the same wave must never read files currently being modified by another lane (unless reading a frozen, versioned contract).
+- **Write-Read Isolation**: `write(A) ∩ read(B) = ∅`. A lane in the same wave must never read files currently being edited by another lane (unless reading a frozen, versioned contract).
 
 ---
 
@@ -57,10 +61,26 @@ Every shared API, database schema, route registry, migration, or global config m
 
 ---
 
-## 5. Hold Conditions
+## 5. State Flow, Blocked vs. Held & Reason Naming
 
-Hold a candidate lane (`state: held`) when any condition is met:
-1. Write scope overlaps with another ready worker (`held_reason: overlap`).
-2. Read scope conflicts with another ready worker's write scope (`held_reason: overlap`).
-3. Depends on an unfinished investigation, explorer lane, or contract wave (`held_reason: dependency`).
-4. Scope boundary or acceptance criteria are vague or unverified (`held_reason: unclear_scope`).
+### State Flow Cycle
+- **Normal Flow**: `ready ➔ running ➔ done ➔ integrated`
+- **Exceptions**: `ready/running ➔ blocked`, `ready ➔ held`, `blocked/held ➔ ready`
+
+### Blocked vs. Held Definitions
+- **`blocked`**: Objective impossibility to proceed (prerequisite lane not integrated, contract un-integrated, verification failed, missing input).
+- **`held`**: Lane is ready to execute, but Planner holds it temporarily due to policy or resource limits (concurrency budget reached, parallel benefit too low, low priority conflict).
+
+### Standardized Reason Enum Values
+
+#### `blocked_reason`
+- `dependency`: Waiting on prerequisite lanes to become `integrated`.
+- `contract`: Waiting on a shared contract owner lane to finish and freeze contract changes.
+- `unclear_scope`: Write scope boundaries or target file paths are ambiguous.
+- `unclear_acceptance`: Acceptance criteria or verification commands are missing or non-verifiable.
+- `verification_failed`: Lane-local checks or integration tests failed.
+
+#### `held_reason`
+- `concurrency_budget`: Ready lanes exceed current host concurrency limits.
+- `low_parallel_benefit`: Parallel wall-clock savings do not justify integration overhead.
+- `scheduling_conflict`: Temporary scheduling conflict with another ready lane.

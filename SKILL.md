@@ -10,7 +10,7 @@ description: >-
   coding-agent backends.
 ---
 
-# Parallel Subagent Planner (v2.0.0 Lean Harness Skill)
+# Parallel Subagent Planner (v2.0.1 Lean Harness Skill)
 
 Decide whether subagents materially help, split accepted work into bounded lanes, hold coupled work, schedule project work in waves, and guide Codex execution.
 
@@ -34,13 +34,13 @@ If any condition fails or there is no strong parallel benefit, execute directly 
 
 ## 3. Build Ready Lanes
 
-Read [references/lane-planning.md](references/lane-planning.md) for decomposition heuristics and ready gate rules.
+Read [references/lane-planning.md](references/lane-planning.md) for decomposition heuristics and Ready Gate rules.
 
 Choose slicing strategy based on codebase coupling:
 - **Vertical Split (End-to-End Capability)**: Groups UI, API, and tests for a user feature into one lane (e.g., `user-profile-capability`) to prevent inter-agent deadlocks.
 - **Horizontal Split (Decoupled Module)**: Separates distinct, independent packages (e.g., Payment vs Notification).
 
-Every candidate lane MUST pass the Lane Ready Gate by defining all 6 canonical fields: `Goal`, `Read`, `Write`, `Deliverable`, `Depends on`, and `Acceptance`.
+Every candidate lane MUST pass the Lane Ready Gate by defining all 6 canonical Ready Gate fields (`Goal`, `Read`, `Write`, `Deliverable`, `Depends on`, `Acceptance`) alongside Control Metadata (`ID`, `Role`, `Ignore`, `Model profile`, `State`, `Reason`).
 
 **Shared Contract Rule**: Every shared API, database schema, route registry, migration, or global config must have exactly ONE owner lane per wave. Consumers may read established contracts but must not edit them concurrently.
 
@@ -57,21 +57,28 @@ Model mappings and host capability rules are defined in [references/runtime-comp
 
 ## 5. Launch Or Hold
 
-Use the minimum viable lane count. Compute the **Frontier** (lanes ready to launch right now). When ready lanes exceed concurrency budget:
+Use the minimum viable lane count. Compute the **Frontier** (lanes ready to launch right now).
+
+Distinguish Blocked vs. Held states:
+- **`blocked`**: Objective block (prerequisite lane not integrated, contract un-integrated, verification failed, unclear scope).
+- **`held`**: Planner policy hold (concurrency budget reached, parallel benefit too low, scheduling conflict).
+
+When ready lanes exceed concurrency budget:
 1. Launch critical-path work first.
 2. Launch lanes that unblock downstream work.
 3. Launch low-risk independent work.
-4. Hold lanes whose context or integration cost exceeds wall-clock benefit (`state: held`).
+4. Hold remaining lanes (`state: held`, `held_reason: concurrency_budget`).
 
-Hold any lane touching another lane's files, depending on uncompleted investigation, or lacking clear acceptance.
+## 6. Integrate And Replan (State-Aware Incremental Replanning)
 
-## 6. Integrate And Replan
+Read [references/project-waves.md](references/project-waves.md) for incremental replanning guidelines.
 
 In task mode: wait for child lanes to complete, merge deliverables, and run main-thread verification.
 
 In project mode: after each wave completes or when status updates arrive:
-- Freeze completed lanes (`done` or `integrated`).
-- Do not re-plan the entire project from scratch.
+- **`done`**: Child agent completed local work. Preserve `done` lanes while awaiting main-thread integration.
+- **`integrated`**: Main thread has merged deliverables and verified workspace integration. Freeze `integrated` lanes.
+- Downstream dependencies are satisfied ONLY when prerequisite lanes reach `integrated` state.
 - Recalculate ONLY affected downstream lanes and unblocked dependencies to form the next parallel frontier.
 
 Main thread is 100% responsible for final integration and global workspace verification.
@@ -81,15 +88,15 @@ Main thread is 100% responsible for final integration and global workspace verif
 ### Compact (Default)
 Return Compact by default for human review:
 - **Decision**: brief rationale on why to split or execute directly.
-- **Launch now**: list of ready frontier lanes with roles, model profiles, and scopes.
-- **Hold**: list of held lanes with specific hold reasons.
+- **Launch now**: list of ready frontier lanes with `Lane ID`, `Role`, `Goal`, `Write`, `Deliverable`, and `Acceptance`.
+- **Hold / Block**: list of held or blocked lanes with explicit reasons (`blocked_reason` or `held_reason`).
 - **Integration**: main thread verification and integration sequence.
 - **Agent candidates**: optional concise list when high-confidence candidates exist.
 
 ### Full
 Return Full when requested or during complex diagnostic reviews:
 - Project scale decision, surface map, global constraints, and slicing strategy.
-- Complete lane table with dependencies and contract owners.
+- Complete lane table with dependencies, contract owners, and Ready Gate audits.
 - Current Frontier and ready child prompts.
 - Integration sequence, incremental replanning rules, and long-term agent candidates.
 
@@ -97,7 +104,7 @@ Return Full when requested or during complex diagnostic reviews:
 
 Read [references/agent-evolution.md](references/agent-evolution.md) for candidate quality auditing rules.
 
-After integration, evaluate whether recurring subagent roles pass the 4 candidate quality filters (`Frequency` 2+, `Stability`, `Boundary`, `Reuse Value`).
+After integration, evaluate whether recurring subagent roles pass the 4 candidate quality filters (`Frequency` 2+ in visible history, `Stability`, `Boundary`, `Reuse Value`).
 
 **Policy Settings** (`promotion_check`):
 - `off`: do not evaluate promotion.
@@ -121,5 +128,5 @@ Multiple qualified candidates may be reported together.
 7. Use the minimum viable lane count.
 8. Subagents must never recursively launch or delegate to other agents.
 9. Main thread is 100% responsible for final integration and global verification.
-10. Only replan affected downstream lanes upon incremental updates.
+10. Downstream dependencies are satisfied ONLY when prerequisite lanes are `integrated`.
 11. Never create or edit persistent custom agent `.toml` files without explicit user approval.

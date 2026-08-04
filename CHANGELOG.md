@@ -2,15 +2,20 @@
 
 All notable changes to the `parallel-subagent-planner` skill will be documented in this file.
 
+## [v2.0.9] - 2026-08-05
+
+### Role System Simplification Patch
+- **Role System Simplification**: Simplified role guidance across `references/context-and-prompts.md` Section 2, `SKILL.md` Section 4, and READMEs. Removed over-constraining taxonomy language ("4 canonical roles vs domain custom role rules"), treating roles as flexible descriptive labels assigned dynamically based on task goals.
+
 ## [v2.0.8] - 2026-08-05
 
 ### Agent Evolution Boundary Abstraction Patch
-- **Role Invariant Abstraction**: Clarified in `references/agent-evolution.md` Section 1 & 3 and `SKILL.md` Section 8 that custom agent candidate promotion evaluates recurring role invariants, developer instructions, and sandbox safety rules (rather than static hardcoded file paths). Generated `.toml` files capture reusable instructions while accepting target file paths dynamically at runtime.
+- **Role Invariant Abstraction**: Clarified in `references/agent-evolution.md` Section 1 & 3 and `SKILL.md` Section 8 that custom agent candidate promotion evaluates recurring role invariants.
 
 ## [v2.0.7] - 2026-08-05
 
 ### Role Extensibility Clarification Patch
-- **Role Extensibility Clarification**: Clarified in `references/context-and-prompts.md` Section 2 and `SKILL.md` Section 4 that the 4 canonical roles (`explorer`, `implementer`, `reviewer`, `migrator`) are recommended built-in defaults, not a dogmatic lock. Custom domain roles are supported provided explicit boundaries are defined.
+- **Role Extensibility Clarification**: Clarified role system extensibility in `references/context-and-prompts.md` Section 2 and `SKILL.md` Section 4.
 
 ## [v2.0.6] - 2026-08-05
 

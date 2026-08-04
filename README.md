@@ -1,4 +1,4 @@
-# parallel-subagent-planner (v2.0.8)
+# parallel-subagent-planner (v2.0.9)
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
@@ -22,7 +22,7 @@ Task ➔ Plan ➔ Launch ➔ Observe ➔ Replan ➔ Integrate ➔ Evolve
 
 - **Skill is the Cognitive Layer; Runtime is the Execution Layer**: Skill owns task structure understanding, lane planning, context boundary engineering, and role evolution. Physical code modifications, thread handles, scheduling, and execution belong 100% to Codex Runtime.
 - **Lane Ready Gate**: Every candidate lane must satisfy 6 core requirements (`Goal`, `Read`, `Write`, `Deliverable`, `Depends on`, `Acceptance`) alongside Control Metadata (`ID`, `Role`, `Ignore`, `Model profile`, `State`, `Reason`) before launching.
-- **Canonical Role System & Extensibility**: Built-in defaults for `explorer` (read-only discovery), `implementer` (bounded modifications), `reviewer` (diff & risk audit), and `migrator` (schema & API migration), while supporting custom domain roles when explicit boundaries are defined.
+- **Descriptive Role System**: Flexible descriptive roles (e.g., `explorer`, `implementer`, `reviewer`, `migrator`, `docs_writer`, `profiler`) tailored to specific task goals.
 - **Controlled Agent Evolution**: Evaluates recurring subagent role patterns after integration (`promotion_check: silent` default, documented in `references/agent-evolution.md`) and generates persistent `.codex/agents/<name>.toml` specs ONLY upon explicit user approval.
 
 ---

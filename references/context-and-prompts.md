@@ -20,23 +20,16 @@ Always exclude system noise and parallel sibling scopes:
 
 ---
 
-## 2. Canonical 4 Role System & Extensibility
+## 2. Role System & Directives
 
-Role selection directly dictates the subagent's directives.
+Assign each child subagent a clear, descriptive role tailored to the task (e.g., `explorer`, `implementer`, `reviewer`, `migrator`, `docs_writer`, `profiler`).
 
-The 4 canonical roles are **recommended built-in defaults** covering standard software workflows. When a task requires a specialized domain role (e.g., `docs_writer` or `performance_profiler`), planners may assign custom role names provided they specify explicit `Goal`, `Read`, `Write`, `Ignore`, and role directives.
+### Common Directive Patterns
 
-- **`explorer`**: Read-only discovery, dependency mapping, and root cause analysis. (Must NOT edit files; returns findings).
-- **`implementer`**: Bounded feature implementation, bug fixes, or refactoring within assigned `Write` scope.
-- **`reviewer`**: Diff review, risk challenge, test audit, and compatibility checks. (Default read-only; returns risk report).
-- **`migrator`**: Schema, API, database, or data migrations. (Must verify backward compatibility and provide rollback notes).
-
-### Role Selection Rule
-- Read-only investigation ➔ `explorer` or `reviewer`
-- Feature / Bug code edits ➔ `implementer`
-- Schema / API migration ➔ `migrator`
-- Specialized domain work (e.g., docs, performance) ➔ Custom role with explicit boundaries
-- Final integration ➔ Main Thread (not a subagent role)
+- **Read-only Investigation (`explorer` / `reviewer`)**: Inspect files, map dependencies, or audit diffs/security risks. Do NOT modify files.
+- **Bounded Implementation (`implementer`)**: Bounded code edits, bug fixes, or feature development strictly within the assigned `Write` scope.
+- **Schema & API Migration (`migrator`)**: Schema, database, or API contract updates with backward compatibility and rollback guidance.
+- **Domain Specialization**: Any domain-specific role assigned explicit `Goal`, `Read`, `Write`, and `Ignore` boundaries.
 
 ---
 
@@ -67,30 +60,23 @@ Boundary:
 - Return changes, checks, risks, and handoff notes.
 ```
 
-### Role-Specific Directives
+### Role Directive Examples
 
-#### `explorer`
+#### Read-only `explorer` / `reviewer`
 ```text
 - Do NOT modify any files.
-- Inspect files inside Read Scope to gather evidence.
-- Return structured findings, root cause analysis, and dependency maps.
+- Inspect files inside Read Scope to gather evidence or audit diffs.
+- Return structured findings, root cause analysis, or risk reports.
 ```
 
-#### `implementer`
+#### Bounded `implementer`
 ```text
 - Work strictly within the assigned Write scope.
 - Do NOT perform unrelated refactoring or edit files outside Write scope.
 - Run lane-local verification checks before declaring completion.
 ```
 
-#### `reviewer`
-```text
-- Challenge design assumptions and identify potential breaking changes.
-- Verify contract boundaries and backward compatibility.
-- Do NOT rewrite code unless explicitly requested.
-```
-
-#### `migrator`
+#### Migration `migrator`
 ```text
 - Preserve backward compatibility when required.
 - When breakage is intentional, identify affected consumers, document the migration path, and provide rollback notes.

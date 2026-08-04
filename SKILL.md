@@ -10,7 +10,7 @@ description: >-
   coding-agent backends.
 ---
 
-# Parallel Subagent Planner (v2.0.2 Lean Harness Skill)
+# Parallel Subagent Planner (v2.0.3 Lean Harness Skill)
 
 Decide whether subagents materially help, split accepted work into bounded lanes, hold coupled work, schedule project work in waves, and guide Codex execution.
 
@@ -60,7 +60,7 @@ Model mappings and host capability rules are defined in [references/runtime-comp
 Use the minimum viable lane count. Compute the **Frontier** (lanes ready to launch right now).
 
 Distinguish Blocked vs. Held states:
-- **`blocked`**: Objective block (prerequisite lane not integrated, contract un-integrated, verification failed, unclear scope).
+- **`blocked`**: Objective block (prerequisite lane not integrated, referenced contract not frozen, verification failed, unclear scope).
 - **`held`**: Planner policy hold (concurrency budget reached, parallel benefit too low, scheduling conflict).
 
 When ready lanes exceed concurrency budget:

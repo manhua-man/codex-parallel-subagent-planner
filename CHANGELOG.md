@@ -2,6 +2,13 @@
 
 All notable changes to the `parallel-subagent-planner` skill will be documented in this file.
 
+## [v2.0.3] - 2026-08-04
+
+### Consistency Patch
+- **Frozen Contract Wording Fix**: Replaced leftover `integrated contract IDs` with `frozen contract IDs` in `references/lane-planning.md:26`.
+- **Contract State Wording Fix**: Replaced `contract un-integrated` with `referenced contract not frozen` in `SKILL.md:63` and `references/lane-planning.md:72`. Maintains clean state separation between Lanes (`done`/`integrated`) and Shared Contracts (`draft`/`frozen`).
+- **Disambiguated `blocked_reason` Enums**: Separated `blocked_reason: dependency` (waiting for prerequisite lanes to reach `integrated` state) from `blocked_reason: contract` (waiting for referenced shared contracts to reach `frozen` state) in `references/lane-planning.md`.
+
 ## [v2.0.2] - 2026-08-04
 
 ### Consistency Patch
@@ -13,15 +20,8 @@ All notable changes to the `parallel-subagent-planner` skill will be documented 
 ## [v2.0.1] - 2026-08-04
 
 ### Consistency Patch
-- **`done` vs. `integrated` Semantics**: Clarified `done` (subagent completed local checks; awaiting main thread merge) vs. `integrated` (main thread merged & verified cross-module integration). Downstream lanes depend strictly on `integrated` state.
+- **`done` vs. `integrated` Semantics**: Clarified `done` (subagent completed local checks; awaiting main thread merge) vs. `integrated` (main thread merged & verified cross-module integration).
 - **`blocked` vs. `held` & Reason Enum Standard**: Distinguished objective execution blocks (`blocked`) from Planner policy holds (`held`). Standardized enums for `blocked_reason` and `held_reason`.
-- **Ready Gate vs. Metadata Fields**: Grouped `Goal`, `Read`, `Write`, `Deliverable`, `Depends on`, `Acceptance` as the 6 Ready Gate Fields, and `ID`, `Role`, `Ignore`, `Model profile`, `State`, `Reason` as Control Metadata in `references/lane-planning.md`.
-- **Term Cleanup**: Purged remaining `worker` / `Child Workers` wording across `lane-planning.md` and README ASCII charts, replacing with `lane` / `Child Agents`.
-- **Custom Agent Model Template Fix**: Updated `references/agent-evolution.md` template to `model = "<host-supported-model-id>"` with instruction to map semantic profiles.
-- **Bounded `Frequency` Evidence**: Restricted `Frequency` filter counting to visible conversation history, user-provided logs, or host memory.
-- **Reviewer Sibling Scope Exception**: Added exception in `references/context-and-prompts.md` allowing `reviewer` / integration lanes to read frozen sibling outputs.
-- **Compact Output Enhancements**: Added `Goal`, `Deliverable`, and `Acceptance` fields to launched lanes in Compact output mode in `SKILL.md`.
-- **Soften Sandbox Wording**: Aligned sandbox execution wording in `references/project-waves.md` with host capability handling.
 
 ## [v2.0.0] - 2026-08-04
 

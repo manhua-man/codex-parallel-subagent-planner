@@ -1,79 +1,26 @@
-# parallel-subagent-planner (v2.0.10)
+# parallel-subagent-planner (v3.0.0)
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-`parallel-subagent-planner` is a lightweight **Agent Planning Harness Skill** that helps Codex decide when to use subagents, create safe execution lanes, control context boundaries, schedule dependency-safe waves, and discover reusable long-term agent roles.
+`parallel-subagent-planner` is a lightweight **Agent Planning Harness Skill** for Codex. It helps Codex decide when to split work into subagents, set safe file scope boundaries, establish execution order, generate clean subagent prompts, and recommend reusable custom agent roles.
 
 ---
 
-## Core Cycle Architecture
+## What It Does
+
+- **Split Decision**: Evaluates whether splitting into subagents saves wall-clock time vs. direct execution.
+- **File Boundary Isolation**: Enforces disjoint write scopes (`write(A) ∩ write(B) = ∅`) so parallel subagents never overwrite each other's work.
+- **Execution Order**: Ensures shared contract/DTO files are modified and frozen before dependent consumer subagents launch.
+- **Clean Subagent Prompts**: Generates clear prompts specifying goals, read/write file scopes, and acceptance tests.
+- **Main Thread Integration**: Merges subagent outputs and runs workspace-wide integration checks.
+- **Custom Agent Guidance**: Suggests saving recurring subagent roles into `.codex/agents/<name>.toml` specs with user approval.
+
+---
+
+## Core Cycle
 
 ```text
 Task ➔ Plan ➔ Launch ➔ Observe ➔ Replan ➔ Integrate ➔ Evolve
-
-      Skill Guidance (Cognitive Layer)
-                     │
-            Codex Agent Runtime (Execution Layer)
-                     │
-             Subagents (Child Agents)
-```
-
-### Core Design Principles
-
-- **Skill is the Cognitive Layer; Runtime is the Execution Layer**: Skill owns task structure understanding, lane planning, context boundary engineering, and role evolution. Physical code modifications, thread handles, scheduling, and execution belong 100% to Codex Runtime.
-- **Lane Ready Gate**: Every candidate lane must satisfy 6 core requirements (`Goal`, `Read`, `Write`, `Deliverable`, `Depends on`, `Acceptance`) alongside Control Metadata (`ID`, `Role`, `Ignore`, `Model profile`, `State`, `Reason`) before launching.
-- **Descriptive Role System**: Flexible descriptive roles (e.g., `explorer`, `implementer`, `reviewer`, `migrator`, `docs_writer`, `profiler`) tailored to specific task goals.
-- **Controlled Agent Evolution**: Evaluates recurring subagent role patterns after integration (`promotion_check: silent` default, documented in `references/agent-evolution.md`) and generates persistent `.codex/agents/<name>.toml` specs ONLY upon explicit user approval.
-
----
-
-## Anti-Scope (The Four Hard Boundaries)
-
-This skill strictly avoids physical runtime infrastructure:
-- ❌ **No Physical Runtime**: Does not implement `spawn()`, `run()`, `kill()` process handles.
-- ❌ **No Physical Scheduler**: Does not maintain physical task queues, priority queues, or worker thread pools.
-- ❌ **No Communication Layer**: Does not implement inter-agent message buses or mailboxes.
-- ❌ **No Persistent Runtime State**: Does not maintain task databases, execution logs, failure logs, or metrics systems.
-
-All physical execution, threading, tool calling, and IPC belong 100% to **Codex / Agent Runtime / External Orchestrator**.
-
----
-
-## Operating Modes
-
-| Mode | Use Case | Behavior |
-| --- | --- | --- |
-| Task Mode | Single bounded change or one module | Fast split gate; avoids broad repository scanning |
-| Project Mode | Complete product, multi-module app, or shared contracts | Maps full product surface, assigns contract owners, computes parallel frontier, schedules waves |
-
----
-
-## Output Modes
-
-- **Compact** (Default): Human-readable summary (`Decision`, `Launch now` with Goal/Write/Deliverable/Acceptance, `Hold / Block`, `Integration`, optional `Agent candidates`).
-- **Full**: Comprehensive text breakdown with lane tables, contract owners, slicing strategies, context boundaries, and ready child prompts.
-
----
-
-## Installation
-
-### Personal Skill Installation
-
-Clone or copy this repository into your personal Codex skills directory:
-
-```bash
-mkdir -p "$HOME/.agents/skills"
-git clone --depth 1 \
-  https://github.com/manhua-man/codex-parallel-subagent-planner.git \
-  "$HOME/.agents/skills/parallel-subagent-planner"
-```
-
-### Target Project Workspace Installation
-
-Copy the repository contents into a target workspace:
-
-```text
-<target-repo>/.agents/skills/parallel-subagent-planner/
 ```
 
 ---
@@ -82,19 +29,37 @@ Copy the repository contents into a target workspace:
 
 ```text
 parallel-subagent-planner/
-├─ SKILL.md
+├─ SKILL.md                          # Core skill instructions (~50 lines)
 ├─ agents/
-│  └─ openai.yaml
+│  └─ openai.yaml                    # Codex metadata configuration
 ├─ references/
-│  ├─ lane-planning.md
-│  ├─ project-waves.md
-│  ├─ context-and-prompts.md
-│  ├─ agent-evolution.md
-│  └─ runtime-compatibility.md
-├─ README.md
-├─ README.zh-CN.md
-├─ CHANGELOG.md
-└─ LICENSE
+│  ├─ lane-decomposition.md          # Slicing heuristics, scope isolation & execution order
+│  └─ child-prompts.md               # Subagent prompt templates & custom agent guidance
+├─ README.md                         # English documentation
+├─ README.zh-CN.md                   # Chinese documentation
+├─ CHANGELOG.md                      # Release notes
+└─ LICENSE                           # MIT License
+```
+
+---
+
+## Installation
+
+### Personal Skill Installation
+
+```bash
+mkdir -p "$HOME/.agents/skills"
+git clone --depth 1 \
+  https://github.com/manhua-man/codex-parallel-subagent-planner.git \
+  "$HOME/.agents/skills/parallel-subagent-planner"
+```
+
+### Project Workspace Installation
+
+Copy the repository contents into a target workspace:
+
+```text
+<target-repo>/.agents/skills/parallel-subagent-planner/
 ```
 
 ---

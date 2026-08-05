@@ -6,7 +6,7 @@ description: >-
   dependency order, or writing focused subagent prompts.
 ---
 
-# Parallel Subagent Planner (v3.0.0 Pure Harness Skill)
+# Parallel Subagent Planner (v3.0.1 Pure Harness Skill)
 
 Decide whether subagents help, split work into safe independent lanes, control file scope boundaries, set execution order, and guide Codex execution.
 

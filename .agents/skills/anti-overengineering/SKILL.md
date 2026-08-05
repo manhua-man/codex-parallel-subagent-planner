@@ -2,18 +2,24 @@
 name: anti-overengineering
 description: >-
   Strict governance guardrail for AI coding agents. Prevents over-engineering,
-  pseudo-framework inflation, fake state machines, 10+ field bureaucracy, and
-  unsubstantiated rule propagation when designing skills or building software features.
+  grand empty architectures ("大而空、宏大叙事"), fake scheduling platforms, pseudo-frameworks,
+  10+ field bureaucracy, and unsubstantiated rule propagation when designing skills or building software features.
 ---
 
 # Anti-Overengineering Guardrail (Matt Pocock Style)
 
-Enforce pragmatic, unbloated AI engineering. Never build pseudo-frameworks in Markdown, simulate runtime code, or invent bureaucratic rules.
+Enforce pragmatic, unbloated AI engineering. Never build pseudo-frameworks in Markdown, wrap simple operations into fake "scheduling platforms", or create grand, ungrounded architectures ("大而空、宏大叙事").
+
+## Core Root-Cause Directive
+
+AI agents have a fatal instinct to over-complicate simple problems into grand, empty architectures. **Stop.** Always return to minimal, grounded, concrete engineering steps that directly modify code and deliver value.
+
+---
 
 ## The 5 Anti-Inflation Invariants
 
-1. **Anti-Pseudo-Framework**
-   - Never design state machines (`ready/running/done/integrated/blocked/held`), fake databases, or process handles (`spawn/kill`) inside Markdown prompts.
+1. **Anti-Pseudo-Framework & Anti-Platform-Inflation**
+   - Never design state machines (`ready/running/done/integrated/blocked/held`), fake databases, fake "scheduling platforms", or process handles (`spawn/kill`) inside Markdown prompts.
    - If a feature requires C++/Python/TypeScript execution code, do NOT simulate it inside text files.
 
 2. **Strict Line Count Budget**
@@ -36,8 +42,8 @@ Enforce pragmatic, unbloated AI engineering. Never build pseudo-frameworks in Ma
 
 Before delivering any plan, skill, or architectural design, audit against this checklist:
 
-- [ ] **Am I simulating a backend software framework inside a text prompt?** *(If YES ➔ Delete it immediately)*
+- [ ] **Am I creating a grand, empty architecture instead of a grounded, concrete solution?** *(If YES ➔ Simplify immediately)*
+- [ ] **Am I wrapping a simple operation into a fake "scheduling platform" or "framework"?** *(If YES ➔ Delete it immediately)*
 - [ ] **Did I invent Enums, State Machines, or Policy options that no execution code runs?** *(If YES ➔ Delete them immediately)*
 - [ ] **Is this design small, easy to adapt, and composable?** *(If NO ➔ Simplify it immediately)*
-- [ ] **Does every rule address a real failure mode?** *(If NO ➔ Remove it immediately)*
 - [ ] **Is SKILL.md under 80 lines?** *(If NO ➔ Prune unnecessary text)*

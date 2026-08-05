@@ -16,7 +16,7 @@ If boundary files are ambiguous, launch ONE read-only subagent first to inspect 
 To prevent subagents from overwriting each other's code or reading unstable drafts:
 
 1. **Write Isolation**: `write(A) ∩ write(B) = ∅`. Two subagents running in parallel must NEVER edit the same file or directory.
-2. **Write-Read Isolation**: `write(A) ∩ read(B) = ∅`. A subagent running in parallel must NOT inspect files currently being modified by another running subagent (unless inspecting a frozen shared contract).
+2. **Write-Read Isolation**: `write(A) ∩ read(B) = ∅`. A subagent running in parallel must NOT inspect files currently being modified by another running subagent (unless inspecting a stable shared contract accepted by the main thread).
 3. **Noise Exclusion**: Always exclude system noise (`node_modules/**`, `dist/**`, `.git/**`, `build/**`) and sibling subagent directories from subagent context.
 
 ---
@@ -25,7 +25,8 @@ To prevent subagents from overwriting each other's code or reading unstable draf
 
 When subagents depend on a shared API route, database schema, migration, or config file:
 
-1. **Single Owner Rule**: Assign exactly ONE subagent to own and edit the shared contract file.
+1. **Single Owner Rule**: Assign exactly ONE owner to each shared contract file: either the main thread or one subagent.
 2. **Sequential Contract Order**:
-   - Phase 1: Launch the contract owner subagent to modify and freeze the shared contract file.
-   - Phase 2: Once the shared contract is frozen, launch consumer subagents in parallel to implement dependent code.
+   1. The owner completes the shared contract changes.
+   2. The main thread reviews and accepts that stable version.
+   3. Dependent subagents may then read it, but must not modify it.

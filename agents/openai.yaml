@@ -1,4 +1,4 @@
 interface:
   display_name: Parallel Subagent Planner
-  short_description: Plan safe subagent execution, lane boundaries, context limits, and waves for Codex.
-  default_prompt: Plan parallel subagents for this task.
+  short_description: Decide when to use subagents, isolate file scopes, order dependencies, and write focused prompts.
+  default_prompt: Decide whether subagents help with this task, and plan them only when useful.

@@ -8,19 +8,19 @@
 
 ## What It Does
 
-- **Split Decision**: Evaluates whether splitting into subagents saves wall-clock time vs. direct execution.
+- **Split Decision**: Evaluates whether splitting into subagents saves wall-clock time vs. direct execution, or if a read-only investigation de-risks implementation.
 - **File Boundary Isolation**: Enforces disjoint write scopes (`write(A) ∩ write(B) = ∅`) so parallel subagents never overwrite each other's work.
-- **Execution Order**: Ensures shared contract/DTO files are modified and frozen before dependent consumer subagents launch.
+- **Execution Order**: Assigns shared contract files to exactly one owner (main thread or subagent) before dependent consumers read them.
 - **Clean Subagent Prompts**: Generates clear prompts specifying goals, read/write file scopes, and acceptance tests.
 - **Main Thread Integration**: Merges subagent outputs and runs workspace-wide integration checks.
-- **Custom Agent Guidance**: Suggests saving recurring subagent roles into `.codex/agents/<name>.toml` specs with user approval.
+- **Custom Agent Guidance**: Suggests saving recurring subagent roles into `.codex/agents/<name>.toml` specs with explicit user approval when repeated evidence exists.
 
 ---
 
 ## Core Cycle
 
 ```text
-Task ➔ Plan ➔ Launch ➔ Observe ➔ Replan ➔ Integrate ➔ Evolve
+Decide ➔ Split ➔ Isolate ➔ Order ➔ Prompt ➔ Integrate
 ```
 
 ---

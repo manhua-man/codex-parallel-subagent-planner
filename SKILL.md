@@ -2,10 +2,8 @@
 name: parallel-subagent-planner
 description: >-
   Plan safe Codex subagent execution for coding tasks. Use when deciding whether
-  parallel subagents would help, splitting work into independent lanes, setting
-  disjoint file boundaries, establishing execution order, or writing clean subagent
-  prompts. Do not use it to manage physical processes, run background servers, or
-  replace runtime execution frameworks.
+  subagents would help, splitting work into independent scopes, establishing
+  dependency order, or writing focused subagent prompts.
 ---
 
 # Parallel Subagent Planner (v3.0.0 Pure Harness Skill)
@@ -16,10 +14,11 @@ Decide whether subagents help, split work into safe independent lanes, control f
 
 Never split for the sake of splitting. Execute directly in the main thread unless splitting into subagents materially reduces wall-clock time or a read-only investigation de-risks implementation.
 
-Only split if ALL of the following are true:
-- Workstreams operate on genuinely independent code paths.
-- Write scopes are completely disjoint with zero overlap (`write(A) ∩ write(B) = ∅`).
-- No subagent reads files currently being edited by another parallel subagent (`write(A) ∩ read(B) = ∅`).
+- Use a read-only investigation subagent when repository boundaries or dependencies are unclear.
+- Launch implementation subagents in parallel only when:
+  - Their write scopes are disjoint (`write(A) ∩ write(B) = ∅`).
+  - Neither reads files being modified by another concurrent subagent (`write(A) ∩ read(B) = ∅`).
+  - Their progress does not depend on another concurrent subagent's unfinished output.
 
 ## 2. Plan Subagent Lanes & File Boundaries
 
@@ -31,11 +30,13 @@ Read [references/lane-decomposition.md](references/lane-decomposition.md) for sl
 
 ## 3. Set Execution Order & Shared Contracts
 
-Every shared contract (API route, database schema, DTO) must have exactly ONE owner subagent per wave:
-1. **Phase 1**: Launch the contract owner subagent first. Wait for shared contract files to be modified and frozen.
-2. **Phase 2**: Launch dependent consumer subagents in parallel to read the frozen contract.
+Assign exactly one owner to each shared contract file: either the main thread or one subagent.
 
-If a subagent fails or violates scope, mark it blocked, report the issue in the current response, and replan only the affected work.
+1. The owner completes the shared contract changes.
+2. The main thread reviews and accepts that stable version.
+3. Dependent subagents may then read it, but must not modify it.
+
+If a subagent fails or violates scope, report the issue, stop dependent work, and replan only the affected scope.
 
 ## 4. Generate Subagent Prompts
 
@@ -43,7 +44,16 @@ Read [references/child-prompts.md](references/child-prompts.md) for prompt templ
 
 Generate self-contained subagent prompts containing: `Role`, `Goal`, `Working Directory`, `Read`, `Write`, `Ignore`, `Acceptance`, and role-specific directives.
 
-## 5. Main Thread Integration & Custom Agent Guidance
+## 5. Output
+
+Return:
+
+- **Decision**: Execute directly, investigate first, or use parallel subagents — with one brief reason.
+- **Order**: State any work that must finish before parallel work begins.
+- **Subagents**: For each subagent, provide Goal, Read, Write, Ignore, and Acceptance.
+- **Integration**: State the workspace-wide checks the main thread will run.
+
+## 6. Main Thread Integration & Custom Agent Guidance
 
 - **Main Thread Integration**: The main thread is 100% responsible for merging child subagent deliverables and running workspace-wide integration test suites.
 - **Custom Agent Guidance**: Read [references/child-prompts.md](references/child-prompts.md). If a subagent role pattern proves repeatedly useful across tasks, recommend saving it as a persistent custom agent spec (`.codex/agents/<name>.toml`) with explicit user approval.
